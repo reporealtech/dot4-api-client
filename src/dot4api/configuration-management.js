@@ -277,9 +277,7 @@ class ConfigurationManagementApi extends BaseApi {
 
   async createCi(ci, ciTypeUuid) {
     try {
-      debug(
-        `${this.name}.createCi('${JSON.stringify(ci)}', '${ciTypeUuid}') ...`
-      );
+      debug(`${this.name}.createCi('${JSON.stringify(ci)}', '${ciTypeUuid}') ...`);
       const url = `api/cis`;
 
       if (_.isNil(ci)) {
@@ -291,17 +289,14 @@ class ConfigurationManagementApi extends BaseApi {
       }
 
       if (isNaN(ci.ciTypeId) || ci.ciTypeId < 0) {
-        throw new Error(
-          `ciTypeId of ci is not a valid number [${ci.ciTypeId}]`
-        );
+        throw new Error(`ciTypeId of ci is not a valid number [${ci.ciTypeId}]`);
       }
 
       if (!ci.name) {
         throw new Error(`name of ci is not set [${ci.name}]`);
       }
 
-      ci.$type =
-        'Common.DomainModels.ConfigurationMgmt.CI, Realtech.Common.DomainModels';
+      ci.$type = 'Common.DomainModels.ConfigurationMgmt.CI, Realtech.Common.DomainModels';
 
       const createdCi = await this.dot4Client.postRequest(url, ci);
 
@@ -328,9 +323,7 @@ class ConfigurationManagementApi extends BaseApi {
       const url = `api/cis?id=${id}`;
 
       if (_.isNaN(ci.ciTypeId) || ci.ciTypeId < 0) {
-        throw new Error(
-          `ciTypeId of ci is not a valid number [${ci.ciTypeId}]`
-        );
+        throw new Error(`ciTypeId of ci is not a valid number [${ci.ciTypeId}]`);
       }
 
       if (_.isEmpty(ci.name)) {
@@ -349,11 +342,7 @@ class ConfigurationManagementApi extends BaseApi {
 
   async createRelation(sourceCIId, destinationCIIds, relationTypeUuid) {
     try {
-      debug(
-        `${
-          this.name
-        }.createRelation('${sourceCIId}, ${destinationCIIds}, ${relationTypeUuid}') ...`
-      );
+      debug(`${this.name}.createRelation('${sourceCIId}, ${destinationCIIds}, ${relationTypeUuid}') ...`);
 
       let relationTypeId = 0;
 
@@ -364,9 +353,7 @@ class ConfigurationManagementApi extends BaseApi {
       const url = `api/CIRelations/forCI/create/${sourceCIId}`;
 
       if (!_.isArray(destinationCIIds)) {
-        throw new Error(
-          `destinationCIIds is not aan array ${destinationCIIds}`
-        );
+        throw new Error(`destinationCIIds is not aan array ${destinationCIIds}`);
       }
 
       if (_.isUndefined(relationTypeUuid)) {
@@ -376,16 +363,13 @@ class ConfigurationManagementApi extends BaseApi {
       relationTypeId = await this.getRelationTypeId(relationTypeUuid);
 
       if (isNaN(relationTypeId) || relationTypeId < 0) {
-        throw new Error(
-          `relationTypeId is not a valid number [${relationTypeId}]`
-        );
+        throw new Error(`relationTypeId is not a valid number [${relationTypeId}]`);
       }
 
       const ciRelations = [];
       _.forEach(destinationCIIds, destinationCIId => {
         const ciRelation = {
-          $type:
-            'Common.DomainModels.ConfigurationMgmt.CIRelation, Realtech.Common.DomainModels',
+          $type: 'Common.DomainModels.ConfigurationMgmt.CIRelation, Realtech.Common.DomainModels',
           id: 0,
           relationTypeId,
           sourceCIId,
@@ -395,10 +379,7 @@ class ConfigurationManagementApi extends BaseApi {
         ciRelations.push(ciRelation);
       });
 
-      const createdCiRelation = await this.dot4Client.postRequest(
-        url,
-        ciRelations
-      );
+      const createdCiRelation = await this.dot4Client.postRequest(url, ciRelations);
 
       return createdCiRelation;
     } catch (error) {

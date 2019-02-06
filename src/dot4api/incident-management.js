@@ -1,4 +1,5 @@
 'use strict';
+const _ = require('lodash');
 
 const debug = require('../lib/debug');
 const ConfigurationManagementApi = require('./configuration-management');
@@ -16,9 +17,7 @@ class IncidentManagementApi extends ConfigurationManagementApi {
     try {
       debug(`${this.name}.getServices("${JSON.stringify(query)}") ...`);
 
-      const response = await this.getCisByCiTypeUuid(
-        UUID_CI_CATEGORY_INCIDENTS
-      );
+      const response = await this.getCisByCiTypeUuid(UUID_CI_CATEGORY_INCIDENTS);
 
       return response.items;
     } catch (error) {
@@ -32,15 +31,69 @@ class IncidentManagementApi extends ConfigurationManagementApi {
     try {
       debug(`${this.name}.getIncident("${id}") ...`);
 
-      const ciType = await this.getCiType(UUID_CI_CATEGORY_INCIDENTS);
+      const ciTypeIdIncidents = await this.getCiTypeId(UUID_CI_CATEGORY_INCIDENTS);
 
-      console.log(ciType);
+      const incident = await this.dot4Client.getRequest(`/api/tickets/${id}`);
+      if (!incident) {
+        throw new Error(`${this.name}.getIncident("${id}"): Incident not found`);
+      }
 
-      return;
+      const ciType = await this.getCiType(incident.ciTypeUUID);
+      const isCiTypeIncidens = _.includes(ciType.parentIds, ciTypeIdIncidents);
+      if (!isCiTypeIncidens) {
+        throw new Error(`${this.name}.getIncident("${id}"): Incident not found. Ci is not of Type Incidents`);
+      }
+
+      return incident;
     } catch (error) {
       throw error;
     } finally {
       debug(`${this.name}.getIncident("${id}")`);
+    }
+  }
+
+  async createIncident(incident) {
+    try {
+      debug(`${this.name}.createIncident(...) ...`);
+
+      const ciTypeIdIncident = await this.getCiTypeId(UUID_CI_TYPE_INCIDENT);
+
+      const newIncident = _.clone(incident);
+      _.set(newIncident, '$type', 'Common.DomainModels.ServiceOperation.Ticket, Realtech.Esm.Common.DomainModels');
+      _.set(newIncident, 'ciTypeId', ciTypeIdIncident);
+
+      const createdIncident = await this.dot4Client.postRequest('/api/tickets', newIncident);
+
+      return createdIncident;
+    } catch (error) {
+      throw error;
+    } finally {
+      debug(`${this.name}.createIncident("...")`);
+    }
+  }
+
+  async updateIncident(incident) {
+    try {
+      debug(`${this.name}.updateIncident(...) ...`);
+
+      if (!incident.id) {
+        throw new Error(`${this.name}.updateIncident(...): Incident id is missing.`);
+      }
+
+      const originalIncident = await this.getIncident(incident.id, incident);
+
+      const incidentForUpdate = _.merge(originalIncident, incident);
+
+      const updatedIncident = await this.dot4Client.putRequest(
+        `/api/tickets/${incidentForUpdate.id}`,
+        incidentForUpdate
+      );
+
+      return updatedIncident;
+    } catch (error) {
+      throw error;
+    } finally {
+      debug(`${this.name}.updateIncident("...")`);
     }
   }
 }

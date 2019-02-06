@@ -63,30 +63,18 @@ function createDot4Client(config) {
     };
 
     try {
-      const respone = await axios.post(
-        '/token',
-        querystring.stringify(loginParams)
-      );
+      const respone = await axios.post('/token', querystring.stringify(loginParams));
 
       _token = respone.data;
-      axios.defaults.headers.common['Authorization'] =
-        'Bearer ' + _token.access_token;
+      axios.defaults.headers.common['Authorization'] = 'Bearer ' + _token.access_token;
       this.isConnected = true;
 
       _loginTimeout = setTimeout(reconnect, _config.reloginTimeout, this);
     } catch (error) {
       if (error.response) {
-        throw new Error(
-          `Connect - Status Code: ${error.response.status} "${
-            error.response.data
-          }"`
-        );
+        throw new Error(`Connect - Status Code: ${error.response.status} "${error.response.data}"`);
       } else if (error.request) {
-        throw new Error(
-          `Connect - TimeoutStatus Code: ${error.response.status} "${
-            error.response.data
-          }"`
-        );
+        throw new Error(`Connect - TimeoutStatus Code: ${error.response.status} "${error.response.data}"`);
       } else {
         throw new Error(`Connect - Error: "${error.message}"`);
       }
@@ -122,15 +110,15 @@ function createDot4Client(config) {
     } catch (error) {
       if (error.response) {
         throw new Error(
-          `${method} Request ${url} - Status Code: ${error.response.status} "${
-            error.response.data
-          }"`
+          `${method} Request ${url} - Status Code: ${error.response.status} "${JSON.stringify(
+            error.response.data,
+            null,
+            2
+          )}"`
         );
       } else if (error.request) {
         throw new Error(
-          `${method} Request ${url} - TimeoutStatus Code: ${
-            error.response.status
-          } "${error.response.data}"`
+          `${method} Request ${url} - TimeoutStatus Code: ${error.response.status} "${error.response.data}"`
         );
       } else {
         throw new Error(`${method} Request ${url} - Error: "${error.message}"`);

@@ -12,6 +12,7 @@
     "axios": "^0.18.0",
     "bluebird": "^3.5.2",
     "debug": "^4.1.0",
+    "faker": "^4.1.0",
     "lodash": "^4.17.11",
     "request": "^2.88.0",
     "request-promise": "^4.2.2"
