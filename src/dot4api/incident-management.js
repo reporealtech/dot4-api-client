@@ -7,6 +7,8 @@ const ConfigurationManagementApi = require('./configuration-management');
 const UUID_CI_CATEGORY_INCIDENTS = '688da5aa-8357-4f84-a873-26a3a1646777';
 const UUID_CI_TYPE_INCIDENT = '84d48ab8-a0ca-4b2b-9c89-9d5a23e15c3f';
 
+const COMMENT_TYPES = ['private', 'public', 'portal'];
+
 class IncidentManagementApi extends ConfigurationManagementApi {
   constructor(dot4Client) {
     super(dot4Client);
@@ -119,18 +121,7 @@ class IncidentManagementApi extends ConfigurationManagementApi {
     try {
       debug(`${this.name}.addPrivateTicketComment(${ticketId}, ${comment}) ...`);
 
-      if (!_.isInteger(ticketId)) {
-        throw new Error(`${this.name}.addPrivateTicketComment("${ticketId}"): Incident id is missing.`);
-      }
-
-      if (!_.isString(comment)) {
-        throw new Error(`${this.name}.addPublicTicketComment("${comment}"): comment is not a string.`);
-      }
-
-      let cleanComment = '"' + comment.replace(new RegExp('"'), '\\"') + '"';
-      cleanComment = cleanComment.replace(new RegExp('\r?\n', 'g'), '<br>');
-
-      const createdComment = await this.dot4Client.postRequest(`/api/tickets/${ticketId}/privateComment`, cleanComment);
+      const createdComment = this.addTicketComment(ticketId, comment, 'private');
 
       return createdComment;
     } catch (error) {
@@ -144,17 +135,7 @@ class IncidentManagementApi extends ConfigurationManagementApi {
     try {
       debug(`${this.name}.addPublicTicketComment(${ticketId}, ${comment}) ...`);
 
-      if (!_.isInteger(ticketId)) {
-        throw new Error(`${this.name}.addPublicTicketComment("${ticketId}"): Incident id is missing.`);
-      }
-
-      if (!_.isString(comment)) {
-        throw new Error(`${this.name}.addPublicTicketComment("${comment}"): comment is not a string.`);
-      }
-
-      let cleanComment = '"' + comment.replace(new RegExp('"'), '\\"') + '"';
-      cleanComment = cleanComment.replace(new RegExp('\r?\n', 'g'), '<br>');
-      const createdComment = await this.dot4Client.postRequest(`/api/tickets/${ticketId}/publicComment`, cleanComment);
+      const createdComment = this.addTicketComment(ticketId, comment, 'public');
 
       return createdComment;
     } catch (error) {
@@ -168,6 +149,20 @@ class IncidentManagementApi extends ConfigurationManagementApi {
     try {
       debug(`${this.name}.addPublicTicketComment(${ticketId}, ${comment}) ...`);
 
+      const createdComment = this.addTicketComment(ticketId, comment, 'portal');
+
+      return createdComment;
+    } catch (error) {
+      throw error;
+    } finally {
+      debug(`${this.name}.addPublicTicketComment("${ticketId}")`);
+    }
+  }
+
+  async addTicketComment(ticketId, comment, commentType) {
+    try {
+      debug(`${this.name}.addPublicTicketComment(${ticketId}, "${commentType}", "${commentType}") ...`);
+
       if (!_.isInteger(ticketId)) {
         throw new Error(`${this.name}.addPublicTicketComment("${ticketId}"): Incident id is missing.`);
       }
@@ -176,18 +171,36 @@ class IncidentManagementApi extends ConfigurationManagementApi {
         throw new Error(`${this.name}.addPublicTicketComment("${comment}"): comment is not a string.`);
       }
 
+      if (!_.includes(COMMENT_TYPES, commentType)) {
+        throw new Error(
+          `${
+            this.name
+          }.addPublicTicketComment("${comment}"): commentType is not valid. Valid Values are ${COMMENT_TYPES}`
+        );
+      }
+
+      let url;
+      switch (commentType) {
+        case 'private':
+          url = `/api/tickets/${ticketId}/privateComment`;
+          break;
+        case 'public':
+          url = `/api/tickets/${ticketId}/publicComment`;
+          break;
+        case 'portal':
+          url = `/api/tickets/portal/${ticketId}/publicComment`;
+          break;
+      }
+
       let cleanComment = '"' + comment.replace(new RegExp('"'), '\\"') + '"';
       cleanComment = cleanComment.replace(new RegExp('\r?\n', 'g'), '<br>');
-      const createdComment = await this.dot4Client.postRequest(
-        `/api/tickets/portal/${ticketId}/publicComment`,
-        cleanComment
-      );
+      const createdComment = await this.dot4Client.postRequest(url, cleanComment);
 
       return createdComment;
     } catch (error) {
       throw error;
     } finally {
-      debug(`${this.name}.addPublicTicketComment("${ticketId}")`);
+      debug(`${this.name}.addPublicTicketComment(...)`);
     }
   }
 }
