@@ -32,6 +32,13 @@ describe('Create DOT4 Client', async () => {
     expect(dot4Client.isConnected).to.equal(true);
   });
 
+  it('dot4 get User Info', async () => {
+    const userInfo = await dot4Client.getUserInfo();
+
+    expect(userInfo).to.be.a('object');
+    expect(userInfo.email).to.equal(config.user);
+  });
+
   after(async () => {
     dot4Client.disconnect();
   });

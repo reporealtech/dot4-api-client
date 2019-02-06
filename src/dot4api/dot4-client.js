@@ -55,6 +55,14 @@ function createDot4Client(config) {
     return response.data;
   };
 
+  dot4Client.getUserInfo = async function() {
+    debug(`${MODULE_NAME}.getUserInfo() ...`);
+    const userInfo = await this.getRequest('/api/userinfo');
+
+    debug(`${MODULE_NAME}.getUserInfo() finished.`);
+    return userInfo;
+  };
+
   dot4Client.connect = async function() {
     const loginParams = {
       grant_type: 'password',
@@ -66,7 +74,7 @@ function createDot4Client(config) {
       const respone = await axios.post('/token', querystring.stringify(loginParams));
 
       _token = respone.data;
-      axios.defaults.headers.common['Authorization'] = 'Bearer ' + _token.access_token;
+
       this.isConnected = true;
 
       _loginTimeout = setTimeout(reconnect, _config.reloginTimeout, this);
@@ -99,11 +107,18 @@ function createDot4Client(config) {
 
   dot4Client.request = async function(method, url, data) {
     debug(`${MODULE_NAME}.request("${method}","${url}",) ...`);
+
+    const headers = {
+      'content-type': 'application/json',
+      Authorization: 'Bearer ' + _token.access_token
+    };
+
     try {
       const response = await axios({
         method,
         url,
-        data
+        data,
+        headers
       });
 
       return response.data;

@@ -61,16 +61,53 @@ describe('Create DOT4 Incident Managment Api Client', async () => {
   });
 
   it.only('Update an Incident', async () => {
+    const userInfo = await dot4Client.getUserInfo();
+
     const incident = {
       id: incidentId,
       name: faker.hacker.phrase(),
-      description: faker.lorem.lines()
+      description: faker.lorem.lines(),
+      user_SEO: userInfo.person.id
     };
 
     const updatedIncident = await incidentManagementApi.updateIncident(incident);
     expect(updatedIncident.id).to.equal(incidentId);
     expect(updatedIncident.name).to.equal(incident.name);
     expect(updatedIncident.description).to.equal(incident.description);
+  });
+
+  it.only('Add private Ticket Comment to an Incident', async () => {
+    const comment = faker.hacker.phrase() + '\n' + faker.lorem.lines();
+
+    const createdComment = await incidentManagementApi.addPrivateTicketComment(incidentId, comment);
+    expect(createdComment).to.be.a('object');
+  });
+
+  it.only('Add public Ticket Comment to an Incident', async () => {
+    const comment = faker.hacker.phrase() + '\n' + faker.lorem.lines();
+    const createdComment = await incidentManagementApi.addPublicTicketComment(incidentId, comment);
+    expect(createdComment).to.be.a('object');
+  });
+
+  it.only('Add public portal Ticket Comment to an Incident', async () => {
+    const comment = faker.hacker.phrase() + '\n' + faker.lorem.lines();
+    const createdComment = await incidentManagementApi.addPublicPortalTicketComment(incidentId, comment);
+    expect(createdComment).to.be.a('object');
+  });
+
+  it.only('Get Ticket Comments of an Incident', async () => {
+    const comments = await incidentManagementApi.getTicketComments(incidentId);
+    expect(comments).to.be.a('array');
+    expect(comments).to.have.length(3);
+
+    expect(comments[0].isPublic).to.equal(false);
+    expect(comments[0].commentType).to.equal(0);
+
+    expect(comments[1].isPublic).to.equal(true);
+    expect(comments[1].commentType).to.equal(0);
+
+    expect(comments[2].isPublic).to.equal(true);
+    expect(comments[2].commentType).to.equal(0);
   });
 
   after(async () => {

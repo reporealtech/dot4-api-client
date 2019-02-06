@@ -76,7 +76,7 @@ class IncidentManagementApi extends ConfigurationManagementApi {
     try {
       debug(`${this.name}.updateIncident(...) ...`);
 
-      if (!incident.id) {
+      if (!incident && !_.isInteger(incident.id)) {
         throw new Error(`${this.name}.updateIncident(...): Incident id is missing.`);
       }
 
@@ -94,6 +94,100 @@ class IncidentManagementApi extends ConfigurationManagementApi {
       throw error;
     } finally {
       debug(`${this.name}.updateIncident("...")`);
+    }
+  }
+
+  async getTicketComments(ticketId) {
+    try {
+      debug(`${this.name}.getTicketComments(...) ...`);
+
+      if (!_.isInteger(ticketId)) {
+        throw new Error(`${this.name}.getTicketComments("${ticketId}"): Incident id is missing.`);
+      }
+
+      const comments = await this.dot4Client.getRequest(`/api/tickets/${ticketId}/Comments`);
+
+      return comments;
+    } catch (error) {
+      throw error;
+    } finally {
+      debug(`${this.name}.getTicketComments("${ticketId}")`);
+    }
+  }
+
+  async addPrivateTicketComment(ticketId, comment) {
+    try {
+      debug(`${this.name}.addPrivateTicketComment(${ticketId}, ${comment}) ...`);
+
+      if (!_.isInteger(ticketId)) {
+        throw new Error(`${this.name}.addPrivateTicketComment("${ticketId}"): Incident id is missing.`);
+      }
+
+      if (!_.isString(comment)) {
+        throw new Error(`${this.name}.addPublicTicketComment("${comment}"): comment is not a string.`);
+      }
+
+      let cleanComment = '"' + comment.replace(new RegExp('"'), '\\"') + '"';
+      cleanComment = cleanComment.replace(new RegExp('\r?\n', 'g'), '<br>');
+
+      const createdComment = await this.dot4Client.postRequest(`/api/tickets/${ticketId}/privateComment`, cleanComment);
+
+      return createdComment;
+    } catch (error) {
+      throw error;
+    } finally {
+      debug(`${this.name}.addPrivateTicketComment("${ticketId}")`);
+    }
+  }
+
+  async addPublicTicketComment(ticketId, comment) {
+    try {
+      debug(`${this.name}.addPublicTicketComment(${ticketId}, ${comment}) ...`);
+
+      if (!_.isInteger(ticketId)) {
+        throw new Error(`${this.name}.addPublicTicketComment("${ticketId}"): Incident id is missing.`);
+      }
+
+      if (!_.isString(comment)) {
+        throw new Error(`${this.name}.addPublicTicketComment("${comment}"): comment is not a string.`);
+      }
+
+      let cleanComment = '"' + comment.replace(new RegExp('"'), '\\"') + '"';
+      cleanComment = cleanComment.replace(new RegExp('\r?\n', 'g'), '<br>');
+      const createdComment = await this.dot4Client.postRequest(`/api/tickets/${ticketId}/publicComment`, cleanComment);
+
+      return createdComment;
+    } catch (error) {
+      throw error;
+    } finally {
+      debug(`${this.name}.addPublicTicketComment("${ticketId}")`);
+    }
+  }
+
+  async addPublicPortalTicketComment(ticketId, comment) {
+    try {
+      debug(`${this.name}.addPublicTicketComment(${ticketId}, ${comment}) ...`);
+
+      if (!_.isInteger(ticketId)) {
+        throw new Error(`${this.name}.addPublicTicketComment("${ticketId}"): Incident id is missing.`);
+      }
+
+      if (!_.isString(comment)) {
+        throw new Error(`${this.name}.addPublicTicketComment("${comment}"): comment is not a string.`);
+      }
+
+      let cleanComment = '"' + comment.replace(new RegExp('"'), '\\"') + '"';
+      cleanComment = cleanComment.replace(new RegExp('\r?\n', 'g'), '<br>');
+      const createdComment = await this.dot4Client.postRequest(
+        `/api/tickets/portal/${ticketId}/publicComment`,
+        cleanComment
+      );
+
+      return createdComment;
+    } catch (error) {
+      throw error;
+    } finally {
+      debug(`${this.name}.addPublicTicketComment("${ticketId}")`);
     }
   }
 }
