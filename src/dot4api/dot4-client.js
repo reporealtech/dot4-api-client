@@ -8,6 +8,7 @@ const debug = require('../lib/debug');
 const ServiceManagementApi = require('./service-management');
 const ConfigurationManagementApi = require('./configuration-management');
 const IncidentManagementApi = require('./incident-management');
+const PermissionManagementApi = require('./permission-management');
 
 const MODULE_NAME = 'createDot4Client';
 
@@ -72,11 +73,11 @@ function createDot4Client(config) {
       _loginTimeout = setTimeout(reconnect, _config.reloginTimeout, this);
     } catch (error) {
       if (error.response) {
-        throw new Error(`Connect - Status Code: ${error.response.status} "${error.response.data}"`);
+        throw new Error(`Connect - Status Code: ${_.get(error,"response.status")} "${_.get(error,"response.data")}"`);
       } else if (error.request) {
-        throw new Error(`Connect - TimeoutStatus Code: ${error.response.status} "${error.response.data}"`);
+        throw new Error(`Connect - TimeoutStatus Code: ${_.get(error,"response.status")} "${_.get(error,"response.data")}"`);
       } else {
-        throw new Error(`Connect - Error: "${error.message}"`);
+        throw new Error(`Connect - Error: "${_.get(error,"message")}"`);
       }
     } finally {
       debug(`createDot4Client() finished`);
@@ -191,7 +192,14 @@ function createDot4Client(config) {
     debug(`${MODULE_NAME}.createServiceManagementApi() finished.`);
     return serviceManagementApi;
   };
-
+  
+  dot4Client.createPermissionManagementApi() = async function() {
+    debug(`${MODULE_NAME}.createPermissionManagementApi() ...`);
+    const permissionManagementApi = new PermissionManagementApi(this);
+	debug(`${MODULE_NAME}.createPermissionManagementApi() finished.`);
+    return permissionManagementApi;
+  };
+  
   return dot4Client;
 }
 

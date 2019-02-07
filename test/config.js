@@ -1,5 +1,7 @@
 'use strict';
 
+require('dotenv').config()
+
 const config = {
   user: process.env.DOT4_USER || 'admin@realtech.de',
   password: process.env.DOT4_PASSWORD || 'admin',
