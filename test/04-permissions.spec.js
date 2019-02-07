@@ -1,12 +1,16 @@
 'use strict';
 
-const assert = require('chai').assert;
-const config = require('./config');
+const _=require('lodash')
+, assert = require('chai').assert
+, config = require('./config')
 
-const createDot4Client = require('../src/index');
+, createDot4Client = require('../src/index')
+;
 
-let dot4Client;
-let permissionManagementApi;
+let dot4Client
+, permissionManagementApi
+;
+const ciTypeIdToBeTested=1
 
 describe('Call Permission API', async () => {
   before(async () => {
@@ -17,31 +21,44 @@ describe('Call Permission API', async () => {
   });
 
   it('get permissions', async () => {
-	  assert.isObject(permissionManagementApi.ciTypes)
+	  let permissions=await permissionManagementApi.getPermissions(ciTypeIdToBeTested)
+	  assert.isArray(permissions)
   });
   
   it('create permissions', async () => {
-	  assert.isObject(permissionManagementApi.ciTypes)
-  });
-
-  it('get permissions', async () => {
-	  assert.isObject(permissionManagementApi.ciTypes)
+	  let permissionsToBeSet = [
+			{
+				"roleId": 1,
+				"roleName": "Administrator",
+				"ciTypeId": 1,
+				"viewable": true,
+				"createable": false,
+				"editable": false,
+				"deletable": false
+			}
+		]
+	  
+	  await permissionManagementApi.updatePermissions(ciTypeIdToBeTested, permissionsToBeSet)
+	  
+	  let permissions=await permissionManagementApi.getPermissions(ciTypeIdToBeTested)
+	  assert.isArray(permissions)
   });
 
   it('update permissions', async () => {
-	  assert.isObject(permissionManagementApi.ciTypes)
-  });
-
-  it('get permissions', async () => {
-	  assert.isObject(permissionManagementApi.ciTypes)
-  });
-
-  it('delete permissions', async () => {
-	  assert.isObject(permissionManagementApi.ciTypes)
-  });
-
-  it('get permissions', async () => {
-	  assert.isObject(permissionManagementApi.ciTypes)
+	  let permissions=await permissionManagementApi.getPermissions(ciTypeIdToBeTested)
+	  assert.isArray(permissions)
+	  
+	  let changedPermissions=_.clone(permissions)
+	  changedPermissions[0].viewable=!permissions[0].viewable
+	  changedPermissions[1].createable=!permissions[1].createable
+	  changedPermissions[2].editable=!permissions[2].editable
+	  changedPermissions[3].deletable=!permissions[3].deletable
+	  
+	  await permissionManagementApi.updatePermissions(ciTypeIdToBeTested, changedPermissions)
+	  
+	  let updatedPermissions=await permissionManagementApi.getPermissions(ciTypeIdToBeTested)
+	  assert.isArray(updatedPermissions)
+	  assert.equal(updatedPermissions[0].viewable, changedPermissions[0].viewable)
   });
 
   after(async () => {

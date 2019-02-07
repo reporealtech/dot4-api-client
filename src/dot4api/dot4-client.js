@@ -193,7 +193,7 @@ function createDot4Client(config) {
     return serviceManagementApi;
   };
   
-  dot4Client.createPermissionManagementApi() = async function() {
+  dot4Client.createPermissionManagementApi = function() {
     debug(`${MODULE_NAME}.createPermissionManagementApi() ...`);
     const permissionManagementApi = new PermissionManagementApi(this);
 	debug(`${MODULE_NAME}.createPermissionManagementApi() finished.`);
