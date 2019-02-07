@@ -4,7 +4,8 @@
   "description": "client for accessing dot4 api",
   "main": "./src/index.js",
   "scripts": {
-    "test": "mocha test/**/*.spec.js"
+    "test": "mocha test/**/*.spec.js",
+    "docs": "jsdoc2md src/**/*.js > api.md"
   },
   "author": "ruediger.gutleisch@realtech.com",
   "license": "ISC",

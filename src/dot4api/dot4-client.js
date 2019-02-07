@@ -1,5 +1,12 @@
 'use strict';
 
+/**
+ * A module for creating a DOT4 API Client.
+ * @module dot4-client
+ * @example
+ * const createDot4Client = require('dot4-api-client')
+ */
+
 const axios = require('axios');
 const querystring = require('querystring');
 const _ = require('lodash');
@@ -17,6 +24,24 @@ async function reconnect(that) {
   await that.connect();
 }
 
+/**
+ * The main dot4 Client Creation function
+ * @param {object} - configuration object for connecting to the dot4 api
+ * @returns {dot4client} returns an dot4 api client object
+ * @example
+Create an dot4 api client with a given configuration and connnect it
+```javascript
+const createDot4Client = require('dot4-api-client');
+const config = {
+  user: 'admin@realtech.de',
+  password: 'admin',
+  tenant: 'Default',  
+};
+
+const dot4Client = createDot4Client(config);
+await dot4Client.connect();
+```
+ */
 function createDot4Client(config) {
   debug(`createDot4Client()...`);
   if (!config) {
