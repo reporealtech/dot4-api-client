@@ -15,6 +15,7 @@ const debug = require('../lib/debug');
 const ServiceManagementApi = require('./service-management');
 const ConfigurationManagementApi = require('./configuration-management');
 const IncidentManagementApi = require('./incident-management');
+const AdministrationApi = require('./administration');
 
 const MODULE_NAME = 'createDot4Client';
 
@@ -230,6 +231,22 @@ function createDot4Client(config) {
 
     debug(`${MODULE_NAME}.createServiceManagementApi() finished.`);
     return serviceManagementApi;
+  };
+
+  dot4Client.createAdministrationApi = async function() {
+    debug(`${MODULE_NAME}.createAdministrationApi() ...`);
+    const administrationApi = new AdministrationApi(this);
+    if (_.isUndefined(this.ciTypes) || _.isUndefined(this.ciTypesTree)) {
+      await administrationApi.getCiTypeList();
+      this.ciTypes = administrationApi.ciTypes;
+      this.ciTypesTree = administrationApi.ciTypesTree;
+    } else {
+      administrationApi.ciTypes = this.ciTypes;
+      administrationApi.ciTypesTree = this.ciTypesTree;
+    }
+
+    debug(`${MODULE_NAME}.createAdministrationApi() finished.`);
+    return administrationApi;
   };
 
   return dot4Client;

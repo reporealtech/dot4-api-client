@@ -12,7 +12,7 @@ const COMMENT_TYPES = ['private', 'public', 'portal'];
 class IncidentManagementApi extends ConfigurationManagementApi {
   constructor(dot4Client) {
     super(dot4Client);
-    this.name = 'ServiceManagementApi';
+    this.name = 'IncidentManagementApi';
   }
 
   async getIncidents(query) {
