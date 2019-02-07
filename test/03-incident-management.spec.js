@@ -43,10 +43,10 @@ describe('Create DOT4 Incident Managment Api Client', async () => {
     const incident = await incidentManagementApi.getIncident(incidentId);
     expect(incident.id).to.equal(incidentId);
     expect(incident).to.have.property('name');
-    expect(incident).to.have.property('createdBy:');
+    expect(incident).to.have.property('createdBy');
   });
 
-  it.only('Create new Incident', async () => {
+  it('Create new Incident', async () => {
     const incident = {
       name: faker.hacker.phrase(),
       description: faker.lorem.lines()
@@ -60,7 +60,7 @@ describe('Create DOT4 Incident Managment Api Client', async () => {
     incidentId = createdIncident.id;
   });
 
-  it.only('Update an Incident', async () => {
+  it('Update an Incident', async () => {
     const userInfo = await dot4Client.getUserInfo();
 
     const incident = {
@@ -76,26 +76,26 @@ describe('Create DOT4 Incident Managment Api Client', async () => {
     expect(updatedIncident.description).to.equal(incident.description);
   });
 
-  it.only('Add private Ticket Comment to an Incident', async () => {
+  it('Add private Ticket Comment to an Incident', async () => {
     const comment = faker.hacker.phrase() + '\n' + faker.lorem.lines();
 
     const createdComment = await incidentManagementApi.addPrivateTicketComment(incidentId, comment);
     expect(createdComment).to.be.a('object');
   });
 
-  it.only('Add public Ticket Comment to an Incident', async () => {
+  it('Add public Ticket Comment to an Incident', async () => {
     const comment = faker.hacker.phrase() + '\n' + faker.lorem.lines();
     const createdComment = await incidentManagementApi.addPublicTicketComment(incidentId, comment);
     expect(createdComment).to.be.a('object');
   });
 
-  it.only('Add public portal Ticket Comment to an Incident', async () => {
+  it('Add public portal Ticket Comment to an Incident', async () => {
     const comment = faker.hacker.phrase() + '\n' + faker.lorem.lines();
     const createdComment = await incidentManagementApi.addPublicPortalTicketComment(incidentId, comment);
     expect(createdComment).to.be.a('object');
   });
 
-  it.only('Get Ticket Comments of an Incident', async () => {
+  it('Get Ticket Comments of an Incident', async () => {
     const comments = await incidentManagementApi.getTicketComments(incidentId);
     expect(comments).to.be.a('array');
     expect(comments).to.have.length(3);
