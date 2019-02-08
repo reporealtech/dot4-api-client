@@ -15,8 +15,8 @@ const debug = require('../lib/debug');
 const ServiceManagementApi = require('./service-management');
 const ConfigurationManagementApi = require('./configuration-management');
 const IncidentManagementApi = require('./incident-management');
+const PermissionManagementApi = require('./permission-management');
 const AdministrationApi = require('./administration');
-
 const MODULE_NAME = 'createDot4Client';
 
 async function reconnect(that) {
@@ -97,20 +97,21 @@ function createDot4Client(config) {
     };
 
     try {
-      const respone = await axios.post('/token', querystring.stringify(loginParams));
+      const response = await axios.post('/token', querystring.stringify(loginParams));
 
-      _token = respone.data;
-
+      _token = response.data;
+      
+      axios.defaults.headers.common['Authorization'] = 'Bearer ' + _token.access_token;
       this.isConnected = true;
 
       _loginTimeout = setTimeout(reconnect, _config.reloginTimeout, this);
     } catch (error) {
       if (error.response) {
-        throw new Error(`Connect - Status Code: ${error.response.status} "${error.response.data}"`);
+        throw new Error(`Connect - Status Code: ${_.get(error,"response.status")} "${_.get(error,"response.data")}"`);
       } else if (error.request) {
-        throw new Error(`Connect - TimeoutStatus Code: ${error.response.status} "${error.response.data}"`);
+        throw new Error(`Connect - TimeoutStatus Code: ${_.get(error,"response.status")} "${_.get(error,"response.data")}"`);
       } else {
-        throw new Error(`Connect - Error: "${error.message}"`);
+        throw new Error(`Connect - Error: "${_.get(error,"message")}"`);
       }
     } finally {
       debug(`createDot4Client() finished`);
@@ -232,7 +233,14 @@ function createDot4Client(config) {
     debug(`${MODULE_NAME}.createServiceManagementApi() finished.`);
     return serviceManagementApi;
   };
-
+  
+  dot4Client.createPermissionManagementApi = function() {
+    debug(`${MODULE_NAME}.createPermissionManagementApi() ...`);
+    const permissionManagementApi = new PermissionManagementApi(this);
+	debug(`${MODULE_NAME}.createPermissionManagementApi() finished.`);
+    return permissionManagementApi;
+  };
+  
   dot4Client.createAdministrationApi = async function() {
     debug(`${MODULE_NAME}.createAdministrationApi() ...`);
     const administrationApi = new AdministrationApi(this);
