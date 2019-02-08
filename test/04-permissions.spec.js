@@ -26,11 +26,9 @@ describe('Call Permission API', async () => {
   });
   
   it('create permissions', async () => {
-	  let permissionsToBeSet = [
+	  const permissionsToBeSet = [
 			{
 				"roleId": 1,
-				"roleName": "Administrator",
-				"ciTypeId": 1,
 				"viewable": true,
 				"createable": false,
 				"editable": false,
@@ -42,23 +40,31 @@ describe('Call Permission API', async () => {
 	  
 	  let permissions=await permissionManagementApi.getPermissions(ciTypeIdToBeTested)
 	  assert.isArray(permissions)
+	  assert.isAbove(permissions.length, 0)
+	  assert.nestedProperty(permissions, '[0].roleName')
+	  assert.nestedProperty(permissions, '[0].ciTypeId')
   });
 
   it('update permissions', async () => {
 	  let permissions=await permissionManagementApi.getPermissions(ciTypeIdToBeTested)
 	  assert.isArray(permissions)
+	  assert.isAbove(permissions.length, 0)
 	  
-	  let changedPermissions=_.clone(permissions)
+	  let changedPermissions=JSON.parse(JSON.stringify(permissions))
 	  changedPermissions[0].viewable=!permissions[0].viewable
-	  changedPermissions[1].createable=!permissions[1].createable
-	  changedPermissions[2].editable=!permissions[2].editable
-	  changedPermissions[3].deletable=!permissions[3].deletable
+	  if(permissions.length>1)
+		changedPermissions[1].createable=!permissions[1].createable
+	  if(permissions.length>1)
+		  changedPermissions[2].editable=!permissions[2].editable
+	  if(permissions.length>2)
+		  changedPermissions[3].deletable=!permissions[3].deletable
 	  
 	  await permissionManagementApi.updatePermissions(ciTypeIdToBeTested, changedPermissions)
 	  
 	  let updatedPermissions=await permissionManagementApi.getPermissions(ciTypeIdToBeTested)
 	  assert.isArray(updatedPermissions)
-	  assert.equal(updatedPermissions[0].viewable, changedPermissions[0].viewable)
+	  assert.isAbove(updatedPermissions.length, 0)
+	  assert.deepEqual(updatedPermissions, changedPermissions)
   });
 
   after(async () => {
