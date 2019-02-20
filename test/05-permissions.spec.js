@@ -2,8 +2,9 @@
 
 const _=require('lodash')
 , assert = require('chai').assert
-, config = require('./config')
+, traverse = require('traverse')
 
+, config = require('./config')
 , createDot4Client = require('../src/index')
 ;
 
@@ -20,12 +21,12 @@ describe('Call Permission API', async () => {
     permissionManagementApi = dot4Client.createPermissionManagementApi();
   });
 
-  it('get permissions', async () => {
-	  let permissions=await permissionManagementApi.getPermissions(ciTypeIdToBeTested)
+  it('get CIType permissions', async () => {
+	  let permissions=await permissionManagementApi.getCITypePermissions(ciTypeIdToBeTested)
 	  assert.isArray(permissions)
   });
   
-  it('create permissions', async () => {
+  it('create CIType permissions', async () => {
 	  const permissionsToBeSet = [
 			{
 				"roleId": 1,
@@ -36,17 +37,17 @@ describe('Call Permission API', async () => {
 			}
 		]
 	  
-	  await permissionManagementApi.updatePermissions(ciTypeIdToBeTested, permissionsToBeSet)
+	  await permissionManagementApi.updateCITypePermissions(ciTypeIdToBeTested, permissionsToBeSet)
 	  
-	  let permissions=await permissionManagementApi.getPermissions(ciTypeIdToBeTested)
+	  let permissions=await permissionManagementApi.getCITypePermissions(ciTypeIdToBeTested)
 	  assert.isArray(permissions)
 	  assert.isAbove(permissions.length, 0)
 	  assert.nestedProperty(permissions, '[0].roleName')
 	  assert.nestedProperty(permissions, '[0].ciTypeId')
   });
 
-  it('update permissions', async () => {
-	  let permissions=await permissionManagementApi.getPermissions(ciTypeIdToBeTested)
+  it('update CIType permissions', async () => {
+	  let permissions=await permissionManagementApi.getCITypePermissions(ciTypeIdToBeTested)
 	  assert.isArray(permissions)
 	  assert.isAbove(permissions.length, 0)
 	  
@@ -59,12 +60,70 @@ describe('Call Permission API', async () => {
 	  if(permissions.length>2)
 		  changedPermissions[3].deletable=!permissions[3].deletable
 	  
-	  await permissionManagementApi.updatePermissions(ciTypeIdToBeTested, changedPermissions)
+	  await permissionManagementApi.updateCITypePermissions(ciTypeIdToBeTested, changedPermissions)
 	  
-	  let updatedPermissions=await permissionManagementApi.getPermissions(ciTypeIdToBeTested)
+	  let updatedPermissions=await permissionManagementApi.getCITypePermissions(ciTypeIdToBeTested)
 	  assert.isArray(updatedPermissions)
 	  assert.isAbove(updatedPermissions.length, 0)
 	  assert.deepEqual(updatedPermissions, changedPermissions)
+  });
+  
+  it('get feature tree', async () => {
+	  let featureTree=await permissionManagementApi.getFeatureTree()
+	  assert.isArray(featureTree)
+	  assert.isAbove(featureTree.length, 0)
+	  
+	  let allFeaturesAsFlatList=[]
+	  , children=[]
+	  ;
+	  traverse(featureTree).forEach(function (x) {
+		  if(typeof x == 'object' && x != null && !_.isArray(x)){
+			allFeaturesAsFlatList.push(x)
+			if(x.items)
+				children.push(...x.items)
+		  }
+	  });
+	  
+	  //keine doppelten IDs
+	  let gr=_.groupBy(allFeaturesAsFlatList, 'id')
+	  _.forEach(gr, (arrOfPf, id) => {
+		assert.isArray(arrOfPf)
+		assert.lengthOf(arrOfPf, 1, `keine doppelten IDs. Folgende ist doppelt: ${id}`)
+	  })
+	  
+	  //keine doppelten names
+	  gr=_.groupBy(allFeaturesAsFlatList, 'name')
+	  _.forEach(gr, (arrOfPf, name) => {
+		assert.isArray(arrOfPf)
+		assert.lengthOf(arrOfPf, 1, `keine doppelten names. Folgender ist doppelt: ${name}`)
+	  })
+	  
+	  //alle elemente sollen attrs id, parentID, name und items haben
+	  _.forEach(allFeaturesAsFlatList, pf => {
+		  assert.property(pf, 'id')
+		  assert.property(pf, 'parentId')
+		  assert.property(pf, 'name')
+		  assert.property(pf, 'items')
+	  })
+	  
+	  //alle parentIDs auf oberster ebene null
+	  gr=_.keys(_.groupBy(featureTree, 'parentId'))
+	  assert.isArray(gr)
+	  assert.lengthOf(gr, 1)
+	  assert.equal(gr[0], "null")
+	  
+	  
+	  //ab 2. ebene alle parentIDs ungleich null
+	  let neededParentIds=_.keys(_.groupBy(children, 'parentId'))
+	  assert.isArray(neededParentIds)
+	  assert.notIncludeMembers(neededParentIds, [ 'null' ])
+	  
+	  //fuer alle eingetragenen parentIds muessen objekte existieren
+	  let existingParents=_.map(featureTree, v=>`${v.id}`)
+	  assert.includeMembers(existingParents, neededParentIds)
+	  
+	  //Irgendwo sollte es unterpunkte geben: mindestens einmal 2 Ebenen. D. h. items.length>0
+	  assert.isOk(_.some(featureTree, pf => (_.get(pf,"items.length")||0)>0 ), "es gibt keine Unterpunkte.")
   });
 
   after(async () => {
