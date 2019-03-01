@@ -10,9 +10,15 @@ module.exports = class PermissionManagementApi extends BaseApi {
     this.name = 'PermissionManagementApi';
   }
   
-  async safeDot4ClientRequest(logName, method, url, reqParams){
+  async safeDot4ClientRequest(method, url, reqParams){
+	//get calling function name from stack trace
+	let e = new Error()
+	, frame = e.stack.split("\n")[2]
+	, functionName = frame.split(" ")[5];
+	
 	try {
-      debug(`${this.name}.${logName}(...) ...`);
+		
+      debug(`${functionName}(...) ...`);
 
       const res = await this.dot4Client[`${method.toLowerCase()}Request`](url, reqParams);
 
@@ -20,19 +26,27 @@ module.exports = class PermissionManagementApi extends BaseApi {
     } catch (error) {
       throw error;
     } finally {
-      debug(`${this.name}.${logName}("...")`);
+      debug(`${functionName}("...") finished.`);
     }
   }
 
   async getCITypePermissions(ciTypeId) {
-	  return await this.safeDot4ClientRequest('getPermissions', 'get', `/api/CITypePermission/${ciTypeId}`)
+	  return await this.safeDot4ClientRequest('get', `/api/CITypePermission/${ciTypeId}`)
   }
   
   async updateCITypePermissions(ciTypeId, permissionsToBeSet) {
-	  return await this.safeDot4ClientRequest('updatePermissions', 'put', `/api/CITypePermission/${ciTypeId}`, permissionsToBeSet)
+	  return await this.safeDot4ClientRequest('put', `/api/CITypePermission/${ciTypeId}`, permissionsToBeSet)
   }
   
   async getFeatureTree(){
-	   return await this.safeDot4ClientRequest('getFeatureTree', 'get', `/api/permission/featuretree`)
+	   return await this.safeDot4ClientRequest('get', `/api/permission/featuretree`)
+  }
+  
+  async getPermissionsByFeatureId(featureId) {
+	  return await this.safeDot4ClientRequest('get', `/api/permission/feature/${featureId}`)
+  }
+  
+  async updatePermissionsByFeatureId(featureId, permissions) {
+	  return await this.safeDot4ClientRequest('put', `/api/permission/feature/${featureId}`, permissions)
   }
 }

@@ -100,10 +100,7 @@ describe('Call Permission API', async () => {
 	  
 	  //alle elemente sollen attrs id, parentID, name und items haben
 	  _.forEach(allFeaturesAsFlatList, pf => {
-		  assert.property(pf, 'id')
-		  assert.property(pf, 'parentId')
-		  assert.property(pf, 'name')
-		  assert.property(pf, 'items')
+		  assert.containsAllKeys(pf, ['id', 'parentId', 'name', 'items'])
 	  })
 	  
 	  //alle parentIDs auf oberster ebene null
@@ -125,6 +122,117 @@ describe('Call Permission API', async () => {
 	  //Irgendwo sollte es unterpunkte geben: mindestens einmal 2 Ebenen. D. h. items.length>0
 	  assert.isOk(_.some(featureTree, pf => (_.get(pf,"items.length")||0)>0 ), "es gibt keine Unterpunkte.")
   });
+  
+   it.only('update permissions by feature ID', async () => {
+	   const newPerms=[
+    {
+        "roleId": 1,
+        "roleName": "Administrator",
+        "ciTypeId": 1,
+        "viewable": false,
+        "createable": false,
+        "editable": false,
+        "deletable": true
+    },
+    {
+        "roleId": 2,
+        "roleName": "Configuration-Analyst",
+        "ciTypeId": 1,
+        "viewable": false,
+        "createable": false,
+        "editable": false,
+        "deletable": false
+    },
+    {
+        "roleId": 3,
+        "roleName": "Configuration-Verantwortlicher",
+        "ciTypeId": 1,
+        "viewable": false,
+        "createable": false,
+        "editable": false,
+        "deletable": false
+    },
+    {
+        "roleId": 4,
+        "roleName": "Access-Manager",
+        "ciTypeId": 1,
+        "viewable": false,
+        "createable": false,
+        "editable": false,
+        "deletable": false
+    },
+    {
+        "roleId": 5,
+        "roleName": "Portal",
+        "ciTypeId": 1,
+        "viewable": false,
+        "createable": false,
+        "editable": false,
+        "deletable": false
+    },
+    {
+        "roleId": 6,
+        "roleName": "Service-Manager",
+        "ciTypeId": 1,
+        "viewable": false,
+        "createable": false,
+        "editable": false,
+        "deletable": false
+    },
+    {
+        "roleId": 7,
+        "roleName": "Wissensmanager",
+        "ciTypeId": 1,
+        "viewable": false,
+        "createable": false,
+        "editable": false,
+        "deletable": false
+    },
+    {
+        "roleId": 8,
+        "roleName": "Incident-Manager",
+        "ciTypeId": 1,
+        "viewable": false,
+        "createable": false,
+        "editable": false,
+        "deletable": false
+    },
+    {
+        "roleId": 9,
+        "roleName": "Supporter",
+        "ciTypeId": 1,
+        "viewable": false,
+        "createable": false,
+        "editable": false,
+        "deletable": false
+    },
+    {
+        "roleId": 10,
+        "roleName": "Revisor",
+        "ciTypeId": 1,
+        "viewable": false,
+        "createable": false,
+        "editable": false,
+        "deletable": false
+    }
+];
+
+	  let permissions=await permissionManagementApi.updatePermissionsByFeatureId(1, newPerms)
+	  assert.isArray(permissions)
+	  console.log(permissions)
+	  _.forEach(permissions, perm=>{
+		  // assert.containsAllKeys(perm, ['id', 'parentId']);
+	  })
+  })
+
+  it('get permissions by feature ID', async () => {
+	  let permissions=await permissionManagementApi.getPermissionsByFeatureId(1)
+	  assert.isArray(permissions)
+	  console.log(permissions)
+	  _.forEach(permissions, perm=>{
+		  // assert.containsAllKeys(perm, ['id', 'parentId']);
+	  })
+  })
 
   after(async () => {
     dot4Client.disconnect();
