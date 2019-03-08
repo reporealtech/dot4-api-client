@@ -296,7 +296,8 @@ class ConfigurationManagementApi extends BaseApi {
         throw new Error(`name of ci is not set [${ci.name}]`);
       }
 
-      ci.$type = 'Common.DomainModels.ConfigurationMgmt.CI, Realtech.Common.DomainModels';
+	  if(!ci.$type)
+		ci.$type = 'Common.DomainModels.ConfigurationMgmt.CI, Realtech.Common.DomainModels';
 
       const createdCi = await this.dot4Client.postRequest(url, ci);
 
@@ -309,8 +310,10 @@ class ConfigurationManagementApi extends BaseApi {
   }
 
   async updateCi(ci) {
+	  let  updatedCi;
+	  
     try {
-      debug(`${this.name}.createCi(${JSON.stringify}) ...`);
+      debug(`${this.name}.updateCi(${JSON.stringify(ci)}) ...`);
 
       if (_.isNil(ci)) {
         throw new Error('ci object not set');
@@ -330,13 +333,39 @@ class ConfigurationManagementApi extends BaseApi {
         throw new Error(`name of ci is not set [${ci.name}]`);
       }
 
-      const updatedCi = await this.dot4Client.putRequest(url, ci);
+      updatedCi = await this.dot4Client.putRequest(url, ci);
 
-      return updatedCi;
+      
     } catch (error) {
       return error;
     } finally {
       debug(`${this.name}.updateCi(...) finished.`);
+    }
+	return updatedCi;
+  }
+  
+  async deleteCi(ci) {
+    try {
+      debug(`${this.name}.deleteCi(${JSON.stringify(ci)}) ...`);
+
+      if (_.isNil(ci)) {
+        throw new Error('ci object not set');
+      }
+
+      let id = ci.id;
+      if (_.isNaN(id) || id < 0) {
+        throw new Error(`id of ci is not a valid number [${id}]`);
+      }
+      // const url = "api/cis" //`api/cis?id=${id}`;
+      const url = `api/cis?ids=[${id}]`;
+
+      // await this.dot4Client.deleteRequest(url, {ids: [id]} ); //, ci
+      await this.dot4Client.deleteRequest(url ); //, ci
+
+    } catch (error) {
+      return error;
+    } finally {
+      debug(`${this.name}.deleteCi(...) finished.`);
     }
   }
 

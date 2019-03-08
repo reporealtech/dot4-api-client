@@ -16,6 +16,7 @@ const ServiceManagementApi = require('./service-management');
 const ConfigurationManagementApi = require('./configuration-management');
 const IncidentManagementApi = require('./incident-management');
 const PermissionManagementApi = require('./permission-management');
+const UserManagementApi = require('./user-management');
 const AdministrationApi = require('./administration');
 const MODULE_NAME = 'createDot4Client';
 
@@ -182,21 +183,26 @@ function createDot4Client(config) {
     return await this.request('put', url, body);
   };
 
-  dot4Client.deleteRequest = async function(url, body) {
-    return await this.request('delete', url, '');
+  dot4Client.deleteRequest = async function(url) { //, body
+    return await this.request('delete', url); //, body
   };
+  
+  dot4Client.setCiTypes = async function(api) {
+	  if (_.isUndefined(this.ciTypes) || _.isUndefined(this.ciTypesTree)) {
+      await api.getCiTypeList();
+      this.ciTypes = api.ciTypes;
+      this.ciTypesTree = api.ciTypesTree;
+    } else {
+      api.ciTypes = this.ciTypes;
+      api.ciTypesTree = this.ciTypesTree;
+    }
+	// debug(`--1 ${_.keys(api.ciTypes)}`)
+  }
 
   dot4Client.createConfigurationManagementApi = async function() {
     debug(`${MODULE_NAME}.createConfigurationManagementApi() ...`);
     const configurationManagementApi = new ConfigurationManagementApi(this);
-    if (_.isUndefined(this.ciTypes) || _.isUndefined(this.ciTypesTree)) {
-      await configurationManagementApi.getCiTypeList();
-      this.ciTypes = configurationManagementApi.ciTypes;
-      this.ciTypesTree = configurationManagementApi.ciTypesTree;
-    } else {
-      configurationManagementApi.ciTypes = this.ciTypes;
-      configurationManagementApi.ciTypesTree = this.ciTypesTree;
-    }
+    await dot4Client.setCiTypes(configurationManagementApi)
 
     debug(`${MODULE_NAME}.createConfigurationManagementApi() finished.`);
     return configurationManagementApi;
@@ -205,14 +211,7 @@ function createDot4Client(config) {
   dot4Client.createIncidentManagementApi = async function() {
     debug(`${MODULE_NAME}.createIncidentManagementApi() ...`);
     const incidentManagementApi = new IncidentManagementApi(this);
-    if (_.isUndefined(this.ciTypes) || _.isUndefined(this.ciTypesTree)) {
-      await incidentManagementApi.getCiTypeList();
-      this.ciTypes = incidentManagementApi.ciTypes;
-      this.ciTypesTree = incidentManagementApi.ciTypesTree;
-    } else {
-      incidentManagementApi.ciTypes = this.ciTypes;
-      incidentManagementApi.ciTypesTree = this.ciTypesTree;
-    }
+    await dot4Client.setCiTypes(incidentManagementApi)
 
     debug(`${MODULE_NAME}.createIncidentManagementApi() finished.`);
     return incidentManagementApi;
@@ -221,14 +220,7 @@ function createDot4Client(config) {
   dot4Client.createServiceManagementApi = async function() {
     debug(`${MODULE_NAME}.createServiceManagementApi() ...`);
     const serviceManagementApi = new ServiceManagementApi(this);
-    if (_.isUndefined(this.ciTypes) || _.isUndefined(this.ciTypesTree)) {
-      await serviceManagementApi.getCiTypeList();
-      this.ciTypes = serviceManagementApi.ciTypes;
-      this.ciTypesTree = serviceManagementApi.ciTypesTree;
-    } else {
-      serviceManagementApi.ciTypes = this.ciTypes;
-      serviceManagementApi.ciTypesTree = this.ciTypesTree;
-    }
+    await dot4Client.setCiTypes(serviceManagementApi)
 
     debug(`${MODULE_NAME}.createServiceManagementApi() finished.`);
     return serviceManagementApi;
@@ -241,17 +233,19 @@ function createDot4Client(config) {
     return permissionManagementApi;
   };
   
+  dot4Client.createUserManagementApi = async function() {
+    debug(`${MODULE_NAME}.createUserManagementApi() ...`);
+    const userManagementApi = new UserManagementApi(this);
+	await dot4Client.setCiTypes(userManagementApi)
+	debug(`${MODULE_NAME}.createUserManagementApi() ciTypes: ${_.keys(userManagementApi.ciTypes).length}.`);
+	debug(`${MODULE_NAME}.createUserManagementApi() finished.`);
+    return userManagementApi;
+  };
+  
   dot4Client.createAdministrationApi = async function() {
     debug(`${MODULE_NAME}.createAdministrationApi() ...`);
     const administrationApi = new AdministrationApi(this);
-    if (_.isUndefined(this.ciTypes) || _.isUndefined(this.ciTypesTree)) {
-      await administrationApi.getCiTypeList();
-      this.ciTypes = administrationApi.ciTypes;
-      this.ciTypesTree = administrationApi.ciTypesTree;
-    } else {
-      administrationApi.ciTypes = this.ciTypes;
-      administrationApi.ciTypesTree = this.ciTypesTree;
-    }
+    await dot4Client.setCiTypes(administrationApi)
 
     debug(`${MODULE_NAME}.createAdministrationApi() finished.`);
     return administrationApi;
