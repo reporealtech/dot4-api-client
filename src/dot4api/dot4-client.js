@@ -238,7 +238,7 @@ function createDot4Client(config) {
     const userManagementApi = new UserManagementApi(this);
 	await dot4Client.setCiTypes(userManagementApi)
 	debug(`${MODULE_NAME}.createUserManagementApi() ciTypes: ${_.keys(userManagementApi.ciTypes).length}.`);
-	debug(`${MODULE_NAME}.createUserManagementApi() finished.`);
+	debug(`${MODULE_NAME}.createUserManagementApi() finished.`)
     return userManagementApi;
   };
   
@@ -247,7 +247,7 @@ function createDot4Client(config) {
     const administrationApi = new AdministrationApi(this);
     await dot4Client.setCiTypes(administrationApi)
 
-    debug(`${MODULE_NAME}.createAdministrationApi() finished.`);
+    debug(`${MODULE_NAME}.createAdministrationApi() finished.`)
     return administrationApi;
   };
 

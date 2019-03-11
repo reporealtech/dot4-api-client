@@ -33,18 +33,27 @@ module.exports = class UserManagementApi extends ConfigurationManagementApi {
   }
   
     async updatePerson(oldUser, newUser){
-	   newUser.id=oldUser.id
+		const oldPerson=new Person(oldUser)
+		, newPerson=new Person(newUser)
+		;
+		
+	   newPerson.id=oldPerson.id
 	   
-	   _.forEach(oldUser, (v,k)=>{
-		 if(!_.has(newUser, k  ))
-			 newUser[k]=v;
+	   _.forEach(oldPerson, (v,k)=>{
+		 if(!_.has(newPerson, k  ))
+			 newPerson[k]=v;
 	   })
 	   
-	  return await this.updateCi(newUser)
+	  return await this.updateCi(newPerson)
   }
   
    async insertPerson(dot4user){
 	   debug('dot4Api.createPerson');
+	   
+	   if(dot4user.isDeactivated) {
+		   debug("won't create deactivated person")
+		   return;
+	   }
 	   
 	   if(!this.asyncInitialisationsFinished)
 		   await this.asyncInitialisationsP;
@@ -60,8 +69,10 @@ module.exports = class UserManagementApi extends ConfigurationManagementApi {
   }
   
   async upsertPerson(dot4user) {
-	const persons=await this.getCis(`email_PERS eq '${dot4user.email_PERS}'`)
+	const dot4Person=new Person(dot4user)
+	, persons=await this.getCis(`email_PERS eq '${dot4Person.email_PERS}'`)
 
+	// debug(`persons: ${persons.length}. dot4user: ${JSON.stringify(dot4user)}`)
 	  if (persons.count > 0) {
 		return await this.updatePerson(persons.items[0], dot4user)
 	  }
