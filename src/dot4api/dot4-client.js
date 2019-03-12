@@ -65,7 +65,7 @@ function createDot4Client(config) {
     config.baseUrl = 'https://api.dot4.de';
   }
 
-  if (_.isInteger(config.reloginTimeout)) {
+  if (!_.isInteger(config.reloginTimeout) || config.reloginTimeout<120*1000) {
     config.reloginTimeout = 1000 * 60 * 60 * 8; // 8h;
   }
 
