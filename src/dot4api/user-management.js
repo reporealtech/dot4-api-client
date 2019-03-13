@@ -63,9 +63,16 @@ module.exports = class UserManagementApi extends ConfigurationManagementApi {
     person.ciTypeId = ciType.id;
 
 	let createdPerson = await this.createCi(person)
+	
+	//Person (nur CI) oder User (mit Login) erzeugen? => abhaengig, ob folgende Attribute null gesetzt oder gar nicht definiert.
+	if(!_.has(dot4user,"userId_PERS") && !_.has(dot4user,"userExisting_PERS")
+    ) {
+		debug(JSON.stringify(dot4user))
 		await this.assignDefaultRoles(createdPerson.userId_PERS);
-		  debug(`Person [${createdPerson.email_PERS}] created.`);
-		  return createdPerson
+	}
+   
+	debug(`Person [${createdPerson.email_PERS}] created.`);
+	return createdPerson
   }
   
   async upsertPerson(dot4user) {
