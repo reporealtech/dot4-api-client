@@ -2,6 +2,9 @@
 
 const _=require('lodash')
 
+, debug = require('../lib/debug')
+;
+
 class person {
   constructor(personProps) {
     this.$type = _.get(personProps,"$type") || 'Common.DomainModels.ConfigurationMgmt.CI, Realtech.Common.DomainModels';
@@ -40,6 +43,19 @@ class person {
     
 	this.isDeactivated = _.has(personProps,"isDeactivated") ? _.get(personProps,"isDeactivated") : false;
 	
+	//Custom Properties: Zusaetzliche Attribute, insbesondere mandantenspezifische
+	//=================
+	_.forEach(personProps, (v,k)=>{
+		let k_PERS=k;
+		if(!k_PERS.endsWith("_PERS"))
+			k_PERS+='_PERS';
+		
+		if( !_.has(this, k_PERS) )
+			this[k_PERS]=v;
+	})
+	
+	// debug(personProps);
+	// debug(this);
   }
 }
 

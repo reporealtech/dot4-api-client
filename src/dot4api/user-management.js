@@ -36,13 +36,16 @@ module.exports = class UserManagementApi extends ConfigurationManagementApi {
 		const oldPerson=new Person(oldUser)
 		, newPerson=new Person(newUser)
 		;
-		
 	   newPerson.id=oldPerson.id
-	   
+
+	   debug(newUser)
+	   debug(newPerson)
+	   debug("check mobilePhoneNumbersBusiness_PERS: "+_.has(newUser, 'mobilePhoneNumbersBusiness_PERS')+", mobilePhoneNumbersBusiness: "+_.has(newUser, 'mobilePhoneNumbersBusiness'  ))
 	   _.forEach(oldPerson, (v,k)=>{
-		 if(!_.has(newPerson, k  ))
+		 if(!_.has(newUser, k  ) && !_.has(newUser, k+'_PERS'  ))
 			 newPerson[k]=v;
 	   })
+	   debug(newPerson)
 	   
 	  return await this.updateCi(newPerson)
   }
