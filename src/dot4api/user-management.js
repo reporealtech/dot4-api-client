@@ -1,10 +1,13 @@
 'use strict';
-const _ = require('lodash');
+const _ = require('lodash')
+;
 
 const BaseApi = require('./base-api')
 , ConfigurationManagementApi = require('./configuration-management')
 , debug = require('../lib/debug')
 , Person = require('../models/person')
+, Company = require('../models/company')
+, Department = require('../models/department')
 ;
 
 module.exports = class UserManagementApi extends ConfigurationManagementApi {
@@ -33,19 +36,33 @@ module.exports = class UserManagementApi extends ConfigurationManagementApi {
   }
   
     async updatePerson(oldUser, newUser){
-		const oldPerson=new Person(oldUser)
-		, newPerson=new Person(newUser)
+		if(!newUser)
+			newUser=oldUser;
+		
+		// debug("oldUser")
+		// debug(oldUser)
+		const oldPerson=new Person(oldUser, this.ciTypes)
+		, newPerson=new Person(newUser, this.ciTypes)
 		;
 	   newPerson.id=oldPerson.id
 
-	   debug(newUser)
-	   debug(newPerson)
-	   debug("check mobilePhoneNumbersBusiness_PERS: "+_.has(newUser, 'mobilePhoneNumbersBusiness_PERS')+", mobilePhoneNumbersBusiness: "+_.has(newUser, 'mobilePhoneNumbersBusiness'  ))
-	   _.forEach(oldPerson, (v,k)=>{
-		 if(!_.has(newUser, k  ) && !_.has(newUser, k+'_PERS'  ))
-			 newPerson[k]=v;
+	   _.forEach(oldPerson, (v,k_orig)=>{
+		   let k_other=k_orig;
+		   if(k_orig.endsWith("_PERS"))
+			   k_other = k_orig.substring(0,k_orig.length-5);
+		   else
+			   k_other += "_PERS";
+		 if(!_.has(newUser, k_orig) && !_.has(newUser, k_other)){ //hier muss newUser genommen werden, da newPerson Default-Werte gesetzt hat
+			// debug(`user-management.js: add key ${k_orig} and value ${v}`)
+			 newPerson[k_orig]=v;
+		 }
 	   })
-	   debug(newPerson)
+	   
+	   //dafuer sorgen, dass keine ungueltigen props eingetragen sind
+	   _.forEach(newPerson, (v,k)=>{
+		   if(!_.has(oldPerson,k))
+			   delete newPerson[k]
+	   })
 	   
 	  return await this.updateCi(newPerson)
   }
@@ -61,16 +78,15 @@ module.exports = class UserManagementApi extends ConfigurationManagementApi {
 	   if(!this.asyncInitialisationsFinished)
 		   await this.asyncInitialisationsP;
 	   
-	   let person = new Person(dot4user)
-	   , ciType=_.find(this.ciTypes, ciTypeObj => ciTypeObj.alias=='PERS')
-    person.ciTypeId = ciType.id;
+	   let person = new Person(dot4user, this.ciTypes)
+	   
 
 	let createdPerson = await this.createCi(person)
 	
 	//Person (nur CI) oder User (mit Login) erzeugen? => abhaengig, ob folgende Attribute null gesetzt oder gar nicht definiert.
 	if(!_.has(dot4user,"userId_PERS") && !_.has(dot4user,"userExisting_PERS")
     ) {
-		debug(JSON.stringify(dot4user))
+		// debug(JSON.stringify(dot4user))
 		await this.assignDefaultRoles(createdPerson.userId_PERS);
 	}
    
@@ -79,9 +95,10 @@ module.exports = class UserManagementApi extends ConfigurationManagementApi {
   }
   
   async upsertPerson(dot4user) {
-	const dot4Person=new Person(dot4user)
+	const dot4Person=new Person(dot4user, this.ciTypes)
 	, persons=await this.getCis(`email_PERS eq '${dot4Person.email_PERS}'`)
 
+	// debug(dot4user)
 	// debug(`persons: ${persons.length}. dot4user: ${JSON.stringify(dot4user)}`)
 	  if (persons.count > 0) {
 		return await this.updatePerson(persons.items[0], dot4user)
@@ -103,8 +120,24 @@ module.exports = class UserManagementApi extends ConfigurationManagementApi {
 	  await this.safeDot4ClientRequest('put', `/api/users/${userid}/roles`, roles)
   }
 
+  async loadAllUsers(){
+	  return await this.loadAllCisForFilter(`ciTypeUuid eq "${Person.getCiTypeAttribute(this.ciTypes, 'uuid')}"`,{ciTypeName: Person.getCiTypeAttribute(this.ciTypes, 'name')})
+  }
+ 
+ async createDepartment(c) {
+	return await this.createCi(new Department(c, this.ciTypes))
+  }
+ 
+  async loadAllDepartments() {
+	  return await this.loadAllCisForFilter(`ciTypeUuid eq "${Department.getCiTypeAttribute(this.ciTypes, 'uuid')}"`,{ciTypeName: Department.getCiTypeAttribute(this.ciTypes, 'name')})
+  }
   
-  // getRoleByType(uuid) {
-    // return this.roles[uuid.toUpperCase()];
-  // }
+  async createCompany(c) {
+	return await this.createCi(new Company(c, this.ciTypes))
+  }
+  
+  async loadAllCompanies() {
+	  return await this.loadAllCisForFilter(`ciTypeUuid eq "${Company.getCiTypeAttribute(this.ciTypes, 'uuid')}"`,{ciTypeName: Company.getCiTypeAttribute(this.ciTypes, 'name')})
+  }
+  
 }

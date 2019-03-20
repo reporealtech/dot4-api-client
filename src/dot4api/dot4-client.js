@@ -108,11 +108,11 @@ function createDot4Client(config) {
       _loginTimeout = setTimeout(reconnect, _config.reloginTimeout, this);
     } catch (error) {
       if (error.response) {
-        throw new Error(`Connect - Status Code: ${_.get(error,"response.status")} "${_.get(error,"response.data")}"`);
+        throw new Error(`Connect - Status Code: ${_.get(error,"response.status")} "${JSON.stringify(_.get(error,"response.data"))}"`);
       } else if (error.request) {
-        throw new Error(`Connect - TimeoutStatus Code: ${_.get(error,"response.status")} "${_.get(error,"response.data")}"`);
+        throw new Error(`Connect - TimeoutStatus Code: ${_.get(error,"response.status")} "${JSON.stringify(_.get(error,"response.data"))}"`);
       } else {
-        throw new Error(`Connect - Error: "${_.get(error,"message")}"`);
+        throw new Error(`Connect - Error: "${JSON.stringify(_.get(error,"message"))}"`);
       }
     } finally {
       debug(`createDot4Client() finished`);

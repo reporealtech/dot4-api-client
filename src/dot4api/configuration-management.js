@@ -1,6 +1,8 @@
 'use strict';
 
-const _ = require('lodash');
+const _ = require('lodash')
+, querystring = require("querystring")
+;
 
 const debug = require('../lib/debug');
 const BaseApi = require('./base-api');
@@ -313,7 +315,7 @@ class ConfigurationManagementApi extends BaseApi {
 	  let  updatedCi;
 	  
     try {
-      debug(`${this.name}.updateCi(${JSON.stringify(ci)}) ...`);
+      debug(`${this.name}.updateCi({name: ${ci.name}, id: ${ci.id}) ...`);
 
       if (_.isNil(ci)) {
         throw new Error('ci object not set');
@@ -417,6 +419,27 @@ class ConfigurationManagementApi extends BaseApi {
       debug(`${this.name}.createRelation(...) finished.`);
     }
   }
+  
+    async loadAllCisForFilter(serverFilter, clientFilter) {
+	  let cis=[]
+	  , numToLoadPerReq=200
+	  let pCount=1
+	  , skip=0
+	  while(cis.length<pCount){
+		  const newP=await this.safeDot4ClientRequest('get', '/api/cis?'
+			+querystring.escape('$filter='+serverFilter)
+			+`&$top=${numToLoadPerReq}&$skip=${numToLoadPerReq*skip}`)
+		  cis.push(...newP.items)
+		  pCount=newP.count
+		  // debug(`must load ${pCount} person-like CIs. first item: ${JSON.stringify(_.map(newP.items,"name"))}`)
+		  skip++
+	  }
+	  if(clientFilter)
+		cis=_.filter(cis,clientFilter)
+	
+	  return cis
+  }
+
 }
 
 module.exports = ConfigurationManagementApi;
