@@ -420,11 +420,23 @@ class ConfigurationManagementApi extends BaseApi {
     }
   }
   
-    async loadAllCisForFilter(serverFilter, clientFilter) {
+    async loadAllCisForFilter(serverFilterP, clientFilter) {
 	  let cis=[]
 	  , numToLoadPerReq=200
-	  let pCount=1
+	  , pCount=1
 	  , skip=0
+	  , serverFilter=serverFilterP
+	  ;
+	  
+	  if(!serverFilter)
+		  serverFilter=''
+	  
+	  if(!/\bisCategory\b/.test(serverFilter)){
+		  if(serverFilter.length)
+			  serverFilter+=' and ';
+		  serverFilter+='isCategory eq false'
+	  }
+	  
 	  while(cis.length<pCount){
 		  const newP=await this.safeDot4ClientRequest('get', '/api/cis?'
 			+querystring.escape('$filter='+serverFilter)
@@ -440,6 +452,62 @@ class ConfigurationManagementApi extends BaseApi {
 	  return cis
   }
 
+  async getCiAttributeTypes(ciId){
+	  return await this.safeDot4ClientRequest('get', `api/CIAttributeTypes?ciTypeId=${ciId}&slim=false&onlyActive=false`)
+  }
+  
+  setAttrIfNotSet(props, name, val){
+	  if(!props[name])
+		  props[name]=val
+  }
+  
+  async createCiAttributeType(attrs){
+	  if(!_.has(attrs, 'ciTypeId') || !_.has(attrs, 'name')) {
+		  debug("createCiAttributeType: missing params")
+	  }
+	  
+	  attrs.id = 0
+	  
+	  this.setAttrIfNotSet(attrs, 'accessMode', 1)
+	  this.setAttrIfNotSet(attrs, 'allowMultiple', false)
+	  this.setAttrIfNotSet(attrs, 'description', attrs.name)
+	  this.setAttrIfNotSet(attrs, 'groupId', 1)
+	  this.setAttrIfNotSet(attrs, 'inInfoDialog', false)
+	  this.setAttrIfNotSet(attrs, 'isActive', true)
+	  this.setAttrIfNotSet(attrs, 'isMandatory', false)
+	  this.setAttrIfNotSet(attrs, 'isUnique', false)
+	  this.setAttrIfNotSet(attrs, 'parentId', null)
+	  this.setAttrIfNotSet(attrs, 'showInList', false)
+	  this.setAttrIfNotSet(attrs, 'versionControlMode', 0)
+	  this.setAttrIfNotSet(attrs, "dataType",  {
+			backgroundColor: null
+			, category: 1
+			, dataTypeLength: 100
+			, foregroundColor: "#000000"
+			, formFieldType: 1
+			, maxCount: 0
+			, maxSize: 0
+			, objectType: 1
+			, referencedCIAttributeTypes: []
+			, typeName: "CIAttributeDataType"
+			, unitCategoryId: 1
+			, unitId: 1
+		})
+	  
+		debug(`createCiAttributeType(${JSON.stringify(attrs)})`)  
+	  return await this.safeDot4ClientRequest('post', `api/CIAttributeTypes`, attrs)
+  }
+  
+  async updateCiAttributeType(attrs){
+	  if(!_.has(attrs, 'id') || !_.has(attrs, 'ciTypeId') || !_.has(attrs, 'name')) {
+		  debug("updateCiAttributeType: missing params")
+	  }
+	  
+	  const id=attrs.id
+	  delete attrs.id
+	  
+	  return await this.safeDot4ClientRequest('put', `api/CIAttributeTypes/${id}`, attrs)
+  }
 }
 
 module.exports = ConfigurationManagementApi;

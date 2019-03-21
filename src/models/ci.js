@@ -15,6 +15,7 @@ class CI {
 		// debug(`calling ${this.name}.getCiTypeAttribute()`)
 		let alias=this.getCiTypeAlias()
 		if(alias) {
+			debug(`ciType(${alias}): ${JSON.stringify(_.find(ciTypes, {alias}))}`)
 			return _.get( _.find(ciTypes, {alias}), attrName)
 		} else {
 			debug(`Error in ci.js => getCiTypeAttribute(${attrName}): NO ALIAS!`)

@@ -117,27 +117,33 @@ module.exports = class UserManagementApi extends ConfigurationManagementApi {
   }
   
   async assignRolesforUser(userid, roles) {
+	  debug(`assignRolesforUser(${userid})`)
 	  await this.safeDot4ClientRequest('put', `/api/users/${userid}/roles`, roles)
   }
 
   async loadAllUsers(){
-	  return await this.loadAllCisForFilter(`ciTypeUuid eq "${Person.getCiTypeAttribute(this.ciTypes, 'uuid')}"`,{ciTypeName: Person.getCiTypeAttribute(this.ciTypes, 'name')})
+	  debug("loadAllUsers()")
+	  return await this.loadAllCisForFilter(`ciTypeUuid eq "${Person.getCiTypeAttribute(this.ciTypes, 'id')}"`,{ciTypeName: Person.getCiTypeAttribute(this.ciTypes, 'name')})
   }
  
  async createDepartment(c) {
+	  debug(`createDepartment(${c.name})`)
 	return await this.createCi(new Department(c, this.ciTypes))
   }
  
   async loadAllDepartments() {
-	  return await this.loadAllCisForFilter(`ciTypeUuid eq "${Department.getCiTypeAttribute(this.ciTypes, 'uuid')}"`,{ciTypeName: Department.getCiTypeAttribute(this.ciTypes, 'name')})
+	  debug("loadAllDepartments()")
+	  return await this.loadAllCisForFilter(`ciTypeUuid eq "${Department.getCiTypeAttribute(this.ciTypes, 'id')}"`,{ciTypeName: Department.getCiTypeAttribute(this.ciTypes, 'name')})
   }
   
   async createCompany(c) {
+	  debug(`createCompany(${c.name})`)
 	return await this.createCi(new Company(c, this.ciTypes))
   }
   
   async loadAllCompanies() {
-	  return await this.loadAllCisForFilter(`ciTypeUuid eq "${Company.getCiTypeAttribute(this.ciTypes, 'uuid')}"`,{ciTypeName: Company.getCiTypeAttribute(this.ciTypes, 'name')})
+	  debug("loadAllCompanies()")
+	  return await this.loadAllCisForFilter(`ciTypeUuid eq "${Company.getCiTypeAttribute(this.ciTypes, 'id')}"`,{ciTypeName: Company.getCiTypeAttribute(this.ciTypes, 'name')})
   }
   
 }
