@@ -3,6 +3,7 @@
 const _=require('lodash')
 
 , CI = require("./ci")
+, debug = require('../lib/debug')
 ;
 
 class Person extends CI {
@@ -42,8 +43,8 @@ class Person extends CI {
 	}
     
 	
-	// debug(personProps);
-	 // debug(this);
+	 // debug(personProps);
+	  // debug(this);
   }
 }
 

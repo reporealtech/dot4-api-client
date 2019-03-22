@@ -123,7 +123,7 @@ module.exports = class UserManagementApi extends ConfigurationManagementApi {
 
   async loadAllUsers(){
 	  debug("loadAllUsers()")
-	  return await this.loadAllCisForFilter(`ciTypeUuid eq "${Person.getCiTypeAttribute(this.ciTypes, 'id')}"`,{ciTypeName: Person.getCiTypeAttribute(this.ciTypes, 'name')})
+	  return await this.loadAllCisForFilter(`ciTypeId eq ${Person.getCiTypeAttribute(this.ciTypes, 'id')}`,{ciTypeName: Person.getCiTypeAttribute(this.ciTypes, 'name')})
   }
  
  async createDepartment(c) {
@@ -133,7 +133,7 @@ module.exports = class UserManagementApi extends ConfigurationManagementApi {
  
   async loadAllDepartments() {
 	  debug("loadAllDepartments()")
-	  return await this.loadAllCisForFilter(`ciTypeUuid eq "${Department.getCiTypeAttribute(this.ciTypes, 'id')}"`,{ciTypeName: Department.getCiTypeAttribute(this.ciTypes, 'name')})
+	  return await this.loadAllCisForFilter(`ciTypeId eq ${Department.getCiTypeAttribute(this.ciTypes, 'id')}`,{ciTypeName: Department.getCiTypeAttribute(this.ciTypes, 'name')})
   }
   
   async createCompany(c) {
@@ -143,7 +143,7 @@ module.exports = class UserManagementApi extends ConfigurationManagementApi {
   
   async loadAllCompanies() {
 	  debug("loadAllCompanies()")
-	  return await this.loadAllCisForFilter(`ciTypeUuid eq "${Company.getCiTypeAttribute(this.ciTypes, 'id')}"`,{ciTypeName: Company.getCiTypeAttribute(this.ciTypes, 'name')})
+	  return await this.loadAllCisForFilter(`ciTypeId eq ${Company.getCiTypeAttribute(this.ciTypes, 'id')}`,{ciTypeName: Company.getCiTypeAttribute(this.ciTypes, 'name')})
   }
   
 }

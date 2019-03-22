@@ -420,30 +420,21 @@ class ConfigurationManagementApi extends BaseApi {
     }
   }
   
-    async loadAllCisForFilter(serverFilterP, clientFilter) {
+    async loadAllCisForFilter(serverFilter, clientFilter) {
 	  let cis=[]
 	  , numToLoadPerReq=200
 	  , pCount=1
 	  , skip=0
-	  , serverFilter=serverFilterP
 	  ;
 	  
-	  if(!serverFilter)
-		  serverFilter=''
-	  
-	  if(!/\bisCategory\b/.test(serverFilter)){
-		  if(serverFilter.length)
-			  serverFilter+=' and ';
-		  serverFilter+='isCategory eq false'
-	  }
-	  
+	  //TODO: all Attrs needed!
 	  while(cis.length<pCount){
 		  const newP=await this.safeDot4ClientRequest('get', '/api/cis?'
-			+querystring.escape('$filter='+serverFilter)
+			+(serverFilter?'$filter='+querystring.escape(serverFilter):'')
 			+`&$top=${numToLoadPerReq}&$skip=${numToLoadPerReq*skip}`)
 		  cis.push(...newP.items)
 		  pCount=newP.count
-		  // debug(`must load ${pCount} person-like CIs. first item: ${JSON.stringify(_.map(newP.items,"name"))}`)
+		  debug(`must load ${pCount} CIs with serverFilter ${JSON.stringify(serverFilter)}. first item: ${JSON.stringify(_.first(newP.items))}`)
 		  skip++
 	  }
 	  if(clientFilter)
@@ -480,7 +471,7 @@ class ConfigurationManagementApi extends BaseApi {
 	  this.setAttrIfNotSet(attrs, 'showInList', false)
 	  this.setAttrIfNotSet(attrs, 'versionControlMode', 0)
 	  this.setAttrIfNotSet(attrs, "dataType",  {
-			backgroundColor: null
+			backgroundColor: "#FFFFFF"
 			, category: 1
 			, dataTypeLength: 100
 			, foregroundColor: "#000000"
