@@ -442,6 +442,28 @@ class ConfigurationManagementApi extends BaseApi {
 	
 	  return cis
   }
+  
+  async createOrActivateCiAttributeTypeIfNeeded(ciTypeAlias, newTypeName){
+	const ciTypeList=await this.getCiTypeList()
+	, ciType_PERS_id=_.get(_.find(ciTypeList, {"alias": ciTypeAlias}),'id')
+	, existingCiAttributeTypesForPersons=await this.getCiAttributeTypes(ciType_PERS_id)
+	;
+	let ciType_externalUserID=_.find(existingCiAttributeTypesForPersons, {"name": newTypeName })
+	;
+	
+	if(!ciType_externalUserID) {
+		debug("#creating attribute "+newTypeName)
+		ciType_externalUserID=await this.createCiAttributeType({ciTypeId: ciType_PERS_id, name: newTypeName, isUnique: true})
+	} else if(!ciType_externalUserID.isActive) {
+		debug("#updating attribute "+newTypeName)
+		ciType_externalUserID.isActive=true
+		ciType_externalUserID=await this.updateCiAttributeType(ciType_externalUserID)
+	} else {
+		// debug('#'+JSON.stringify(ciType_externalUserID))
+	}
+	// debug(JSON.stringify(ciType_externalUserID))
+	return ciType_externalUserID
+  }
 
   async getCiAttributeTypes(ciId){
 	  return await this.safeDot4ClientRequest('get', `api/CIAttributeTypes?ciTypeId=${ciId}&slim=false&onlyActive=false`)
