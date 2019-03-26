@@ -77,9 +77,9 @@ class ConfigurationManagementApi extends BaseApi {
   async getCis(query) {
     try {
       debug(`${this.name}.getCis(${query}) ...`);
-      let url = `api/CIs?$filter=${query}`;
-
-      return await this.dot4Client.getRequest(url);
+      // let url = `api/CIs?$filter=${query}`;
+      // return await this.dot4Client.getRequest(url);
+	  return {items: await this.loadAllCisForFilter(query)}
     } catch (error) {
       throw error;
     } finally {
@@ -248,7 +248,7 @@ class ConfigurationManagementApi extends BaseApi {
       if (query && query.length > 0) {
         ciQuery = `(ciTypeId eq ${ciTypeId} and (${query}))`;
       } else {
-        ciQuery = `(ciTypeId eq ${ciTypeId})`;
+        ciQuery = `ciTypeId eq ${ciTypeId}`;
       }
 
       return await this.getCis(ciQuery);
@@ -335,8 +335,8 @@ class ConfigurationManagementApi extends BaseApi {
         throw new Error(`name of ci is not set [${ci.name}]`);
       }
 
+	  // debug("make putRequest");
       updatedCi = await this.dot4Client.putRequest(url, ci);
-
       
     } catch (error) {
       return error;
@@ -421,6 +421,7 @@ class ConfigurationManagementApi extends BaseApi {
   }
   
     async loadAllCisForFilter(serverFilter, clientFilter) {
+		debug(`loadAllCisForFilter()`)
 	  let cis=[]
 	  , numToLoadPerReq=200
 	  , pCount=1
@@ -445,7 +446,7 @@ class ConfigurationManagementApi extends BaseApi {
 		  const newP=await this.safeDot4ClientRequest('get', url)
 		  cis.push(...newP.items)
 		  pCount=newP.count
-		  debug(`must load ${pCount} CIs with serverFilter ${JSON.stringify(serverFilter)}. first item: ${JSON.stringify(_.first(newP.items))}`)
+		  debug(`loadAllCisForFilter(): must load ${pCount} CIs with serverFilter ${JSON.stringify(serverFilter)}. first item: ${JSON.stringify(_.first(newP.items))}`)
 		  skip++
 	  }
 	  if(clientFilter)

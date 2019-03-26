@@ -17,15 +17,18 @@ class IncidentManagementApi extends ConfigurationManagementApi {
 
   async getIncidents(query) {
     try {
-      debug(`${this.name}.getServices("${JSON.stringify(query)}") ...`);
+      // debug(`${this.name}.getIncidents("${JSON.stringify(query)}") ...`);
+      debug(`${this.name}.getIncidents() ...`);
 
       const response = await this.getCisByCiTypeUuid(UUID_CI_CATEGORY_INCIDENTS);
 
+	  //TODO: query als filter implementieren
       return response.items;
     } catch (error) {
       throw error;
     } finally {
-      debug(`${this.name}.getServices("${JSON.stringify(query)}")`);
+      // debug(`${this.name}.getIncidents("${JSON.stringify(query)}")`);
+      debug(`${this.name}.getIncidents()`);
     }
   }
 
