@@ -427,11 +427,22 @@ class ConfigurationManagementApi extends BaseApi {
 	  , skip=0
 	  ;
 	  
-	  //TODO: all Attrs needed!
 	  while(cis.length<pCount){
-		  const newP=await this.safeDot4ClientRequest('get', '/api/cis?'
-			+(serverFilter?'$filter='+querystring.escape(serverFilter):'')
-			+`&$top=${numToLoadPerReq}&$skip=${numToLoadPerReq*skip}`)
+		  let url='/api/cis'
+		  ;
+		  
+		  if(serverFilter){
+			  if(serverFilter.match(/^ciTypeId eq (\d+)/))
+				  url+="/byCiType/"+RegExp.$1+"?"; //TODO: $top und $skip funktionieren nicht
+			  else
+				  url+='?$filter='+querystring.escape(serverFilter);
+			  url+='&'
+		  } else
+			  url+='?'
+		  
+		  url+=`$top=${numToLoadPerReq}&$skip=${numToLoadPerReq*skip}`;//TODO: all Attrs needed!
+			
+		  const newP=await this.safeDot4ClientRequest('get', url)
 		  cis.push(...newP.items)
 		  pCount=newP.count
 		  debug(`must load ${pCount} CIs with serverFilter ${JSON.stringify(serverFilter)}. first item: ${JSON.stringify(_.first(newP.items))}`)
@@ -441,6 +452,28 @@ class ConfigurationManagementApi extends BaseApi {
 		cis=_.filter(cis,clientFilter)
 	
 	  return cis
+  }
+  
+  async createOrActivateCiAttributeTypeIfNeeded(ciTypeAlias, newTypeName){
+	const ciTypeList=await this.getCiTypeList()
+	, ciType_PERS_id=_.get(_.find(ciTypeList, {"alias": ciTypeAlias}),'id')
+	, existingCiAttributeTypesForPersons=await this.getCiAttributeTypes(ciType_PERS_id)
+	;
+	let ciType_externalUserID=_.find(existingCiAttributeTypesForPersons, {"name": newTypeName })
+	;
+	
+	if(!ciType_externalUserID) {
+		debug("#creating attribute "+newTypeName)
+		ciType_externalUserID=await this.createCiAttributeType({ciTypeId: ciType_PERS_id, name: newTypeName, isUnique: true})
+	} else if(!ciType_externalUserID.isActive) {
+		debug("#updating attribute "+newTypeName)
+		ciType_externalUserID.isActive=true
+		ciType_externalUserID=await this.updateCiAttributeType(ciType_externalUserID)
+	} else {
+		// debug('#'+JSON.stringify(ciType_externalUserID))
+	}
+	// debug(JSON.stringify(ciType_externalUserID))
+	return ciType_externalUserID
   }
 
   async getCiAttributeTypes(ciId){
