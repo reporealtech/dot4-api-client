@@ -79,7 +79,11 @@ class ConfigurationManagementApi extends BaseApi {
       debug(`${this.name}.getCis(${query}) ...`);
       // let url = `api/CIs?$filter=${query}`;
       // return await this.dot4Client.getRequest(url);
-	  return {items: await this.loadAllCisForFilter(query)}
+	  let cis=await this.loadAllCisForFilter(query)
+	  return {
+		  items: cis
+		  , count: _.get(cis,'length')||0
+	  }
     } catch (error) {
       throw error;
     } finally {
@@ -433,11 +437,13 @@ class ConfigurationManagementApi extends BaseApi {
 		  ;
 		  
 		  if(serverFilter){
-			  if(serverFilter.match(/^ciTypeId eq (\d+)/))
-				  url+="/byCiType/"+RegExp.$1+"?"; //TODO: $top und $skip funktionieren nicht
+			 /* if(serverFilter.match(/^ciTypeId eq (\d+)/))
+				  url+="/byCiType/"+RegExp.$1+"?"; //TODO: $top und $skip funktionieren nicht und beschraenkt
 			  else
 				  url+='?$filter='+querystring.escape(serverFilter);
-			  url+='&'
+			  url+='&'*/
+
+			  url+='?$filter='+querystring.escape(serverFilter)+'&'
 		  } else
 			  url+='?'
 		  
@@ -466,6 +472,7 @@ class ConfigurationManagementApi extends BaseApi {
 	if(!ciType_externalUserID) {
 		debug("#creating attribute "+newTypeName)
 		ciType_externalUserID=await this.createCiAttributeType({ciTypeId: ciType_PERS_id, name: newTypeName, isUnique: true})
+		// ciType_externalUserID.justCreated=true
 	} else if(!ciType_externalUserID.isActive) {
 		debug("#updating attribute "+newTypeName)
 		ciType_externalUserID.isActive=true
@@ -502,7 +509,7 @@ class ConfigurationManagementApi extends BaseApi {
 	  this.setAttrIfNotSet(attrs, 'isMandatory', false)
 	  this.setAttrIfNotSet(attrs, 'isUnique', false)
 	  this.setAttrIfNotSet(attrs, 'parentId', null)
-	  this.setAttrIfNotSet(attrs, 'showInList', false)
+	  this.setAttrIfNotSet(attrs, 'showInList', true)
 	  this.setAttrIfNotSet(attrs, 'versionControlMode', 0)
 	  this.setAttrIfNotSet(attrs, "dataType",  {
 			backgroundColor: "#FFFFFF"

@@ -14,6 +14,10 @@ class IncidentManagementApi extends ConfigurationManagementApi {
     super(dot4Client);
     this.name = 'IncidentManagementApi';
   }
+  
+  getUuidCiTypeIncident(){
+	  return UUID_CI_TYPE_INCIDENT
+  }
 
   async getIncidents(query) {
     try {

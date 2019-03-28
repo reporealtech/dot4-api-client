@@ -96,10 +96,12 @@ module.exports = class UserManagementApi extends ConfigurationManagementApi {
   
   async upsertPerson(dot4user) {
 	const dot4Person=new Person(dot4user, this.ciTypes)
+	// , persons=_.get(await this.getCis(`email_PERS eq '${dot4Person.email_PERS}'`),'items')
 	, persons=await this.getCis(`email_PERS eq '${dot4Person.email_PERS}'`)
 
 	// debug(dot4user)
-	// debug(`persons: ${persons.length}. dot4user: ${JSON.stringify(dot4user)}`)
+	// debug(`persons: ${persons.length}. ${JSON.stringify(persons)}`)
+	// debug(`dot4user: ${JSON.stringify(dot4user)}`)
 	  if (persons.count > 0) {
 		return await this.updatePerson(persons.items[0], dot4user)
 	  }
