@@ -4,8 +4,13 @@ const _ = require('lodash');
 const debug = require('../lib/debug');
 const ConfigurationManagementApi = require('./configuration-management');
 
-const UUID_CI_CATEGORY_INCIDENTS = '688da5aa-8357-4f84-a873-26a3a1646777';
-const UUID_CI_TYPE_INCIDENT = '84d48ab8-a0ca-4b2b-9c89-9d5a23e15c3f';
+const SYSTEM_INTERNALS={
+	ciTypeId: { standardServiceRequest: "d0a9cc69-c745-4e52-8971-7bf602d02b5e", standardStoerung: "84d48ab8-a0ca-4b2b-9c89-9d5a23e15c3f" }
+	, ciCategory: { standardServiceRequest: "31c60a25-caa8-4778-a033-e07c4b8cd3dd", standardStoerung: "688da5aa-8357-4f84-a873-26a3a1646777" }
+	, lifecyclePhase: { newTicket: "10b14579-7249-441e-a15e-0f5dccf1c9a6", closedTicket: "2c61967b-7bee-48bc-a24d-9c334d1aff11" }
+    , lifecycleStatus: { newTicket: "909cd549-b80d-4314-943a-b5c5c70c9b02", closedTicket: "083109e5-9a84-4c2b-a481-704e1a7b0e8b" }
+
+}
 
 const COMMENT_TYPES = ['private', 'public', 'portal'];
 
@@ -16,15 +21,42 @@ class IncidentManagementApi extends ConfigurationManagementApi {
   }
   
   getUuidCiTypeIncident(){
-	  return UUID_CI_TYPE_INCIDENT
+	  return SYSTEM_INTERNALS.ciTypeId.standardStoerung
   }
+  
+  async getTicketLifecycles(){
+	  if(!this.ticketLifecycles)
+		this.ticketLifecycles=await this.safeDot4ClientRequest("get", '/api/tickets/lifecycles')
+		  
+	  return this.ticketLifecycles
+	  
+  }
+  
+  async getTicketLifecycleOrStatus(uuidOfLifecycleOrStatus) {
+	  
+	let res=_.get(
+		_.find(_.get(await this.getTicketLifecycles(),'[0].lifecyclePhases'), {uuid: uuidOfLifecycleOrStatus}),
+		'id'
+	);
+	if(!res) {
+		_.forEach(_.get(await this.getTicketLifecycles(),'[0].lifecyclePhases'), function(lcp) {
+			let resP=_.get(
+				_.find(_.get(lcp,'lifecycleStatus'), {uuid: uuidOfLifecycleOrStatus}),
+				'id'
+			);
+			if(resP) res=resP;
+		});
+	}
+	return res
+  }
+
 
   async getIncidents(query) {
     try {
       // debug(`${this.name}.getIncidents("${JSON.stringify(query)}") ...`);
       debug(`${this.name}.getIncidents() ...`);
 
-      const response = await this.getCisByCiTypeUuid(UUID_CI_CATEGORY_INCIDENTS);
+      const response = await this.getCisByCiTypeUuid(SYSTEM_INTERNALS.ciCategory.standardStoerung);
 
 	  //TODO: query als filter implementieren
       return response.items;
@@ -40,7 +72,7 @@ class IncidentManagementApi extends ConfigurationManagementApi {
     try {
       debug(`${this.name}.getIncident("${id}") ...`);
 
-      const ciTypeIdIncidents = await this.getCiTypeId(UUID_CI_CATEGORY_INCIDENTS);
+      const ciTypeIdIncidents = await this.getCiTypeId(SYSTEM_INTERNALS.ciCategory.standardStoerung);
 
       const incident = await this.dot4Client.getRequest(`/api/tickets/${id}`);
       if (!incident) {
@@ -65,7 +97,7 @@ class IncidentManagementApi extends ConfigurationManagementApi {
     try {
       debug(`${this.name}.createIncident(...) ...`);
 
-      const ciTypeIdIncident = await this.getCiTypeId(UUID_CI_TYPE_INCIDENT);
+      const ciTypeIdIncident = await this.getCiTypeId(SYSTEM_INTERNALS.ciTypeId.standardStoerung);
 
       const newIncident = _.clone(incident);
       _.set(newIncident, '$type', 'Common.DomainModels.ServiceOperation.Ticket, Realtech.Esm.Common.DomainModels');
@@ -90,6 +122,12 @@ class IncidentManagementApi extends ConfigurationManagementApi {
       }
 
       const originalIncident = await this.getIncident(incident.id, incident);
+	  
+	  if(incident.status){
+		incident.lifecyclePhase=await this.getTicketLifecycleOrStatus(SYSTEM_INTERNALS.lifecyclePhase[incident.status+"Ticket"])
+		incident.lifecycleStatus=await this.getTicketLifecycleOrStatus(SYSTEM_INTERNALS.lifecycleStatus[incident.status+"Ticket"])
+			  
+	  }
 
       const incidentForUpdate = _.merge(originalIncident, incident);
 
