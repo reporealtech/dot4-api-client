@@ -18,6 +18,7 @@ const IncidentManagementApi = require('./incident-management');
 const PermissionManagementApi = require('./permission-management');
 const UserManagementApi = require('./user-management');
 const AdministrationApi = require('./administration');
+const SaKpiRepositoryClient = require("./saKpiRepository-client");
 const MODULE_NAME = 'createDot4Client';
 
 async function reconnect(that) {
@@ -250,6 +251,10 @@ function createDot4Client(config) {
     debug(`${MODULE_NAME}.createAdministrationApi() finished.`)
     return administrationApi;
   };
+  
+  dot4Client.createSaKpiRepositoryClient = function() {
+	  return new SaKpiRepositoryClient(config)
+  }
 
   return dot4Client;
 }

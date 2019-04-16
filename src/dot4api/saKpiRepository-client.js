@@ -12,9 +12,9 @@ const _ = require('lodash')
 const debug = require('../lib/debug');
 
 module.exports = class SaKpiRepositoryClient {
-	constructor(baseURL, apiKey) {
-		this.baseURL=baseURL
-		this.apiKey=apiKey
+	constructor(config) {
+		this.baseURL=config.url
+		this.apiKey=config.apiKey
 		this.httpsAgent = new https.Agent({  
 			rejectUnauthorized: false
 		})
@@ -138,24 +138,3 @@ module.exports = class SaKpiRepositoryClient {
 		await Promise.all(collectedPromises)
 	}
 }
-
-
-
-//####### OUT!!!!!!!!!!!
-;
-(async () => {
-    try {
-		let cli=new module.exports(
-			// 'https://aiq.dot4.de/vnext/Yast/kpirepository',
-			// '90ff68ab-fd70-44dc-91c2-a8c32cf0abd9_ANZ6ZkhwEZFOccK6eElaaA6FTXEnI3lVuqOU1vvtYXg1943pgtuL0ZxRKwEsFf9lIPvywxNcdKkVe0sb6cWBTfeVYOZ5PKLwjwuIPyCBIc72YF2k9IK8oVkwF78zh6bN'
-			
-			'https://ai.dot4.de/AONRiskSolution/kpirepository',
-			'b9c96976-7dbc-4b14-a830-b7488104762a_8YSBhfVGcMtuFgGcS4qeFzPKxMJgUehRzlaCvuN1naAnvOTa01Pqq1Oy9Z7qaW2Re6Fz39XXqlhT2Xuu9lgNEInbIkJ8QU7ANflVdQwFadEgGcbvaJf7DXHS5KdPN1q3',
-		
-		)
-		await cli.login()
-		await cli.getAllServices()
-    } catch (e) {
-        debug(e)
-    }
-})();
