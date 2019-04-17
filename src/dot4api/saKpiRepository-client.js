@@ -115,35 +115,45 @@ module.exports = class SaKpiRepositoryClient {
 		
 		/** upload action */
 		let collectedPromises=[]
-		_.forEach(customKpisPerService, (kpis, serviceUid)=>{
-			collectedPromises.push(promiseLimitCollect(()=>axios({ 
-						method: 'post',
-						httpsAgent: this.httpsAgent,
-						baseURL: this.baseURL,
-						url: '/api/service/customkpi-collection',
-						headers: { 'Authorization': 'Bearer '+this.kpiRepToken },
-						body: { 
-							serviceUid,
-							kpis
-						}
-					})
+		//_.forEach(customKpisPerService, (kpis, serviceUid)=>{
+		for(let serviceUid of _.keys(customKpisPerService)){
+			let kpis=customKpisPerService.serviceUid
+			collectedPromises.push(this.promiseLimitCollect(async ()=>{
+						debug(`pushing customkpi-collection: ${JSON.stringify(kpis)}`)
+						await axios({ 
+							method: 'post',
+							httpsAgent: this.httpsAgent,
+							baseURL: this.baseURL,
+							url: '/api/service/customkpi-collection',
+							headers: { 'Authorization': 'Bearer '+this.kpiRepToken },
+							body: { 
+								serviceUid,
+								kpis
+							}
+						})
+					}
 				)
 			)
-		})
-		_.forEach(standardKpis, kpi=>{
-			collectedPromises.push(promiseLimitCollect(()=>axios({ 
-						method: 'post',
-						httpsAgent: this.httpsAgent,
-						baseURL: this.baseURL,
-						url: '/api/service/kpi-collection',
-						headers: { 'Authorization': 'Bearer '+this.kpiRepToken },
-						body: { 
-							payload: kpi
-						}
-					})
+		}//)
+		
+		//_.forEach(standardKpis, kpi=>{
+		for(let kpi of standardKpis){
+			collectedPromises.push(this.promiseLimitCollect(async()=>{
+						debug(`pushing kpi-collection: ${JSON.stringify(kpi)}`)
+						await axios({ 
+							method: 'post',
+							httpsAgent: this.httpsAgent,
+							baseURL: this.baseURL,
+							url: '/api/service/kpi-collection',
+							headers: { 'Authorization': 'Bearer '+this.kpiRepToken },
+							body: { 
+								payload: kpi
+							}
+						})
+					}
 				)
 			)
-		})
+		}//)
 		await Promise.all(collectedPromises)
 	}
 }
