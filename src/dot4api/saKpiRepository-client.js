@@ -1,7 +1,5 @@
 'use strict';
 
-process.env.DEBUG="dot4-client" //####### OUT!!!!!!!!!!!
-
 const _ = require('lodash')
 , axios = require('axios')
 , https = require('https')
@@ -26,17 +24,26 @@ module.exports = class SaKpiRepositoryClient {
 	 */
 	async login() {
 		debug(`login to url: ${this.baseURL+'/api/token'}`)
-		let kpiRepLogin=await axios({ 
-		  httpsAgent: this.httpsAgent,
-		  method: 'post',
-		  baseURL: this.baseURL,
-		  url: '/api/token',
-		  rejectUnauthorized: false,
-		  data: 
-		   { apiKey:this.apiKey }
-		})
-		this.kpiRepToken=_.get(kpiRepLogin,"data.data.access_token")
-		debug(`kpiRepToken: ${this.kpiRepToken}`)
+		try {
+			let kpiRepLogin=await axios({ 
+			  httpsAgent: this.httpsAgent,
+			  method: 'post',
+			  baseURL: this.baseURL,
+			  url: '/api/token',
+			  rejectUnauthorized: false,
+			  data: 
+			   { apiKey:this.apiKey }
+			})
+			this.kpiRepToken=_.get(kpiRepLogin,"data.data.access_token")
+			debug(`kpiRepToken: ${this.kpiRepToken}`)
+		} catch(e) {
+			let errMsg=_.get(e,"response.data.error")
+			if(errMsg){
+				debug(errMsg)
+				throw new Error(errMsg)
+			}
+			throw e
+		}
 	}
 	
 	async getAllServices(){
@@ -63,6 +70,8 @@ module.exports = class SaKpiRepositoryClient {
 	 *
 	 */
 	async uploadKpis(data){
+		if(!this.allServices)
+			await this.getAllServices()
 		
 		let dataArray=data
 		, customKpisPerService={}

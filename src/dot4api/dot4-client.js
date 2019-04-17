@@ -253,7 +253,7 @@ function createDot4Client(config) {
   };
   
   dot4Client.createSaKpiRepositoryClient = function() {
-	  return new SaKpiRepositoryClient(config)
+	  return new SaKpiRepositoryClient(config.saKpiRepository)
   }
 
   return dot4Client;
