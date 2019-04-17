@@ -117,9 +117,9 @@ module.exports = class SaKpiRepositoryClient {
 		let collectedPromises=[]
 		//_.forEach(customKpisPerService, (kpis, serviceUid)=>{
 		for(let serviceUid of _.keys(customKpisPerService)){
-			let kpis=customKpisPerService.serviceUid
+			let kpis=customKpisPerService[serviceUid]
 			collectedPromises.push(this.promiseLimitCollect(async ()=>{
-						debug(`pushing customkpi-collection: ${JSON.stringify(kpis)}`)
+						debug(`pushing customkpi-collection. serviceUid: ${serviceUid}, kpis: ${JSON.stringify(kpis)}`)
 						await axios({ 
 							method: 'post',
 							httpsAgent: this.httpsAgent,
@@ -137,9 +137,9 @@ module.exports = class SaKpiRepositoryClient {
 		}//)
 		
 		//_.forEach(standardKpis, kpi=>{
-		for(let kpi of standardKpis){
+		for(let kpi of _.keys(standardKpis)){
 			collectedPromises.push(this.promiseLimitCollect(async()=>{
-						debug(`pushing kpi-collection: ${JSON.stringify(kpi)}`)
+						debug(`pushing kpi-collection: ${JSON.stringify(standardKpis[kpi])}`)
 						await axios({ 
 							method: 'post',
 							httpsAgent: this.httpsAgent,
@@ -147,7 +147,7 @@ module.exports = class SaKpiRepositoryClient {
 							url: '/api/service/kpi-collection',
 							headers: { 'Authorization': 'Bearer '+this.kpiRepToken },
 							body: { 
-								payload: kpi
+								payload: standardKpis[kpi]
 							}
 						})
 					}
