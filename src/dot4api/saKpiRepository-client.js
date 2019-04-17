@@ -19,23 +19,10 @@ module.exports = class SaKpiRepositoryClient {
 		this.promiseLimitCollect = promiseLimit(1)
 	}
 	
-	/**
-	 * login to Dot4 Kpi Repository. 
-	 */
-	async login() {
-		debug(`login to url: ${this.baseURL+'/api/token'}`)
+	async request(options){
+		debug(`request to url: ${options.url}`)
 		try {
-			let kpiRepLogin=await axios({ 
-			  httpsAgent: this.httpsAgent,
-			  method: 'post',
-			  baseURL: this.baseURL,
-			  url: '/api/token',
-			  rejectUnauthorized: false,
-			  data: 
-			   { apiKey:this.apiKey }
-			})
-			this.kpiRepToken=_.get(kpiRepLogin,"data.data.access_token")
-			debug(`kpiRepToken: ${this.kpiRepToken}`)
+			return await axios(options)
 		} catch(e) {
 			let errMsg=_.get(e,"response.data.error")
 			if(errMsg){
@@ -46,12 +33,31 @@ module.exports = class SaKpiRepositoryClient {
 		}
 	}
 	
+	/**
+	 * login to Dot4 Kpi Repository. 
+	 */
+	async login() {
+		debug(`login to url: ${this.baseURL+'/api/token'}`)
+		let kpiRepLogin=await this.request({ 
+		  httpsAgent: this.httpsAgent,
+		  method: 'post',
+		  baseURL: this.baseURL,
+		  url: '/api/token',
+		  rejectUnauthorized: false,
+		  data: 
+		   { apiKey:this.apiKey }
+		})
+		this.kpiRepToken=_.get(kpiRepLogin,"data.data.access_token")
+		debug(`kpiRepToken: ${this.kpiRepToken}`)
+		
+	}
+	
 	async getAllServices(){
 		/**
 		 * load Service IDs from Dot4 Kpi Repository
 		 */
 		debug("get Dot4 service IDs from dot4SaKpiRepository")
-		const allServicesResp=await axios({ 
+		const allServicesResp=await this.request({ 
 		  method: 'get',
 		  httpsAgent: this.httpsAgent,
 		  baseURL: this.baseURL,
@@ -120,7 +126,7 @@ module.exports = class SaKpiRepositoryClient {
 			let kpis=customKpisPerService[serviceUid]
 			collectedPromises.push(this.promiseLimitCollect(async ()=>{
 						debug(`pushing customkpi-collection. serviceUid: ${serviceUid}, kpis: ${JSON.stringify(kpis)}`)
-						await axios({ 
+						await this.request({ 
 							method: 'post',
 							httpsAgent: this.httpsAgent,
 							baseURL: this.baseURL,
@@ -140,7 +146,7 @@ module.exports = class SaKpiRepositoryClient {
 		for(let kpi of _.keys(standardKpis)){
 			collectedPromises.push(this.promiseLimitCollect(async()=>{
 						debug(`pushing kpi-collection: ${JSON.stringify(standardKpis[kpi])}`)
-						await axios({ 
+						await this.request({ 
 							method: 'post',
 							httpsAgent: this.httpsAgent,
 							baseURL: this.baseURL,
