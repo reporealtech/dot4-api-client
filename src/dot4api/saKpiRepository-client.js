@@ -37,7 +37,7 @@ module.exports = class SaKpiRepositoryClient {
 	 * login to Dot4 Kpi Repository. 
 	 */
 	async login() {
-		debug(`login to url: ${this.baseURL+'/api/token'}`)
+		debug(`login to url: ${this.baseURL+'/api/token'} with apiKey: ${this.apiKey.substring(0,10)}`)
 		let kpiRepLogin=await this.request({ 
 		  httpsAgent: this.httpsAgent,
 		  method: 'post',
@@ -99,24 +99,27 @@ module.exports = class SaKpiRepositoryClient {
 			}
 			
 			let targetUploadObject=standardKpis
-			if( _.find(this.allServices,s=>_.isArray(s.kpiDefinitions)&&s.kpiDefinitions.indexOf(dataRow.kpi)>=0) )
+			// , isCustomKpi=false
+			if( _.find(this.allServices,s=>_.isArray(s.kpiDefinitions)&&s.kpiDefinitions.indexOf(dataRow.kpi)>=0) ){
 				targetUploadObject=customKpisPerService
+				// isCustomKpi=true
+			}
 			
 			if(!targetUploadObject[serviceUid])
 				targetUploadObject[serviceUid]=[]
 			
 			let timestamp=moment(dataRow.date).format()
-			, customKpiValues=_.find(targetUploadObject[serviceUid], {timestamp} )
+			, kpiValues=_.find(targetUploadObject[serviceUid], {timestamp} )
 			, newEntry
 			;
 			
-			if(!customKpiValues){
-				customKpiValues={ timestamp }
+			if(!kpiValues){
+				kpiValues={ timestamp, uid: serviceUid }
 				newEntry=true
 			}
-			customKpiValues[dataRow.kpi]=dataRow.value
+			kpiValues[dataRow.kpi]=dataRow.value
 			if(newEntry)
-				targetUploadObject[serviceUid].push(customKpiValues)
+				targetUploadObject[serviceUid].push(kpiValues)
 		})
 		
 		/** upload action */
@@ -126,13 +129,14 @@ module.exports = class SaKpiRepositoryClient {
 			let kpis=customKpisPerService[serviceUid]
 			collectedPromises.push(this.promiseLimitCollect(async ()=>{
 						debug(`pushing customkpi-collection. serviceUid: ${serviceUid}, kpis: ${JSON.stringify(kpis)}`)
+						debug(`pushing customkpi-collection. body: ${JSON.stringify({serviceUid,kpis})}`)
 						await this.request({ 
 							method: 'post',
 							httpsAgent: this.httpsAgent,
 							baseURL: this.baseURL,
 							url: '/api/service/customkpi-collection',
 							headers: { 'Authorization': 'Bearer '+this.kpiRepToken },
-							body: { 
+							data: { 
 								serviceUid,
 								kpis
 							}
@@ -152,7 +156,7 @@ module.exports = class SaKpiRepositoryClient {
 							baseURL: this.baseURL,
 							url: '/api/service/kpi-collection',
 							headers: { 'Authorization': 'Bearer '+this.kpiRepToken },
-							body: { 
+							data: { 
 								payload: standardKpis[kpi]
 							}
 						})

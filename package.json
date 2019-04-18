@@ -1,6 +1,6 @@
 {
   "name": "dot4-api-client",
-  "version": "1.1.17",
+  "version": "1.1.18",
   "description": "client for accessing dot4 api",
   "main": "./src/index.js",
   "scripts": {
