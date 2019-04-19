@@ -109,19 +109,16 @@ module.exports = class SaKpiRepositoryClient {
 			
 			let timestamp=moment(dataRow.date).format()
 			, kpiValues=_.find(targetUploadObject[serviceUid], {timestamp} )
-			// , newEntry
 			;
 			
 			// debug(`search in targetUploadObject[${serviceUid}] for obj with timestamp ${timestamp}`)
 			if(!kpiValues){
-				// newEntry=true
 				kpiValues={ timestamp }
 				targetUploadObject[serviceUid].push(kpiValues)
 				if(!isCustomKpi)
 					kpiValues.uid = serviceUid
 			}
 			kpiValues[dataRow.kpi]=dataRow.value
-			// if(newEntry)
 		})
 		
 		/** upload action */
