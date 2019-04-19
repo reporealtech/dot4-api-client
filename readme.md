@@ -1,6 +1,6 @@
 # DOT4 API JavaScript Client Library for Node.js
 
-This project provides a Node.js package that makes it easy to consume and manage Realtech DOT4 Service Mangement. It supports:
+This project provides a Node.js package that makes it easy to consume and manage Realtech DOT4 Service Management. It supports:
 
 - Configuration Management
 - Service Management
