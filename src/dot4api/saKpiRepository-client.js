@@ -22,7 +22,7 @@ module.exports = class SaKpiRepositoryClient {
 	async request(options){
 		debug(`request to url: ${options.url}`)
 		try {
-			return await axios(options)
+			return _.get(await axios(options),"data.data")
 		} catch(e) {
 			let errMsg=_.get(e,"response.data.error")
 			if(errMsg){
@@ -37,7 +37,7 @@ module.exports = class SaKpiRepositoryClient {
 	 * login to Dot4 Kpi Repository. 
 	 */
 	async login() {
-		debug(`login to url: ${this.baseURL+'/api/token'} with apiKey: ${this.apiKey.substring(0,10)}`)
+		debug(`login to url: ${this.baseURL+'/api/token'} with apiKey: ${this.apiKey.substring(0,10)}...`)
 		let kpiRepLogin=await this.request({ 
 		  httpsAgent: this.httpsAgent,
 		  method: 'post',
@@ -47,8 +47,8 @@ module.exports = class SaKpiRepositoryClient {
 		  data: 
 		   { apiKey:this.apiKey }
 		})
-		this.kpiRepToken=_.get(kpiRepLogin,"data.data.access_token")
-		debug(`kpiRepToken: ${this.kpiRepToken}`)
+		this.kpiRepToken=_.get(kpiRepLogin,"access_token")
+		debug(`kpiRepToken: ${this.kpiRepToken.substring(0,10)}...`)
 		
 	}
 	
@@ -57,15 +57,14 @@ module.exports = class SaKpiRepositoryClient {
 		 * load Service IDs from Dot4 Kpi Repository
 		 */
 		debug("get Dot4 service IDs from dot4SaKpiRepository")
-		const allServicesResp=await this.request({ 
+		this.allServices=await this.request({ 
 		  method: 'get',
 		  httpsAgent: this.httpsAgent,
 		  baseURL: this.baseURL,
 		  url: '/api/service',
 		  headers: { 'Authorization': 'Bearer '+this.kpiRepToken },
 		})
-		this.allServices=_.get(allServicesResp, "data.data")
-		debug(`allServices: ${JSON.stringify(this.allServices)}`)
+		debug(`loaded ${this.allServices.length} services`)
 	}
 	
 	/**
@@ -99,10 +98,10 @@ module.exports = class SaKpiRepositoryClient {
 			}
 			
 			let targetUploadObject=standardKpis
-			// , isCustomKpi=false
+			, isCustomKpi=false
 			if( _.find(this.allServices,s=>_.isArray(s.kpiDefinitions)&&s.kpiDefinitions.indexOf(dataRow.kpi)>=0) ){
 				targetUploadObject=customKpisPerService
-				// isCustomKpi=true
+				isCustomKpi=true
 			}
 			
 			if(!targetUploadObject[serviceUid])
@@ -113,13 +112,16 @@ module.exports = class SaKpiRepositoryClient {
 			// , newEntry
 			;
 			
+			// debug(`search in targetUploadObject[${serviceUid}] for obj with timestamp ${timestamp}`)
 			if(!kpiValues){
-				kpiValues={ timestamp, uid: serviceUid }
 				// newEntry=true
+				kpiValues={ timestamp }
+				targetUploadObject[serviceUid].push(kpiValues)
+				if(!isCustomKpi)
+					kpiValues.uid = serviceUid
 			}
 			kpiValues[dataRow.kpi]=dataRow.value
 			// if(newEntry)
-				targetUploadObject[serviceUid].push(kpiValues)
 		})
 		
 		/** upload action */
@@ -129,8 +131,7 @@ module.exports = class SaKpiRepositoryClient {
 			let kpis=customKpisPerService[serviceUid]
 			collectedPromises.push(this.promiseLimitCollect(async ()=>{
 						debug(`pushing customkpi-collection. serviceUid: ${serviceUid}, kpis: ${JSON.stringify(kpis)}`)
-						debug(`pushing customkpi-collection. body: ${JSON.stringify({serviceUid,kpis})}`)
-						await this.request({ 
+						let respData=await this.request({ 
 							method: 'post',
 							httpsAgent: this.httpsAgent,
 							baseURL: this.baseURL,
@@ -141,25 +142,27 @@ module.exports = class SaKpiRepositoryClient {
 								kpis
 							}
 						})
+						debug(respData)
 					}
 				)
 			)
 		}//)
 		
 		//_.forEach(standardKpis, kpi=>{
-		for(let kpi of _.keys(standardKpis)){
+		for(let serviceUid of _.keys(standardKpis)){
 			collectedPromises.push(this.promiseLimitCollect(async()=>{
-						debug(`pushing kpi-collection: ${JSON.stringify(standardKpis[kpi])}`)
-						await this.request({ 
+						debug(`pushing kpi-collection: ${JSON.stringify(standardKpis[serviceUid])}`)
+						let respData=await this.request({ 
 							method: 'post',
 							httpsAgent: this.httpsAgent,
 							baseURL: this.baseURL,
 							url: '/api/service/kpi-collection',
 							headers: { 'Authorization': 'Bearer '+this.kpiRepToken },
 							data: { 
-								payload: standardKpis[kpi]
+								payload: standardKpis[serviceUid]
 							}
 						})
+						debug(respData)
 					}
 				)
 			)
