@@ -79,8 +79,8 @@ module.exports = class SaKpiRepositoryClient {
 			await this.getAllServices()
 		
 		let dataArray=data
-		, customKpisPerService={}
-		, standardKpis={}
+		, customKpis=[]
+		, standardKpis=[]
 		;
 		
 		if(!_.isArray(data))
@@ -98,56 +98,44 @@ module.exports = class SaKpiRepositoryClient {
 			}
 			
 			let targetUploadObject=standardKpis
-			, isCustomKpi=false
 			if( _.find(this.allServices,s=>_.isArray(s.kpiDefinitions)&&s.kpiDefinitions.indexOf(dataRow.kpi)>=0) ){
-				targetUploadObject=customKpisPerService
-				isCustomKpi=true
+				targetUploadObject=customKpis
 			}
 			
-			if(!targetUploadObject[serviceUid])
-				targetUploadObject[serviceUid]=[]
-			
 			let timestamp=moment(dataRow.date).format()
-			, kpiValues=_.find(targetUploadObject[serviceUid], {timestamp} )
+			, kpiValues=_.find(targetUploadObject, {timestamp} )
 			;
 			
 			// debug(`search in targetUploadObject[${serviceUid}] for obj with timestamp ${timestamp}`)
 			if(!kpiValues){
 				kpiValues={ timestamp }
-				targetUploadObject[serviceUid].push(kpiValues)
-				if(!isCustomKpi)
-					kpiValues.uid = serviceUid
+				targetUploadObject.push(kpiValues)
+				kpiValues.uid = serviceUid
 			}
 			kpiValues[dataRow.kpi]=dataRow.value
 		})
 		
 		/** upload action */
 		let collectedPromises=[]
-		//_.forEach(customKpisPerService, (kpis, serviceUid)=>{
-		for(let serviceUid of _.keys(customKpisPerService)){
-			let kpis=customKpisPerService[serviceUid]
-			collectedPromises.push(this.promiseLimitCollect(async ()=>{
-						debug(`pushing customkpi-collection. serviceUid: ${serviceUid}, kpis: ${JSON.stringify(kpis)}`)
-						let respData=await this.request({ 
-							method: 'post',
-							httpsAgent: this.httpsAgent,
-							baseURL: this.baseURL,
-							url: '/api/service/customkpi-collection',
-							headers: { 'Authorization': 'Bearer '+this.kpiRepToken },
-							data: { 
-								serviceUid,
-								kpis
-							}
-						})
-						debug(respData)
-					}
-				)
+		collectedPromises.push(this.promiseLimitCollect(async ()=>{
+					debug(`pushing customkpi-collection. kpis: ${JSON.stringify(customKpis)}`)
+					let respData=await this.request({ 
+						method: 'post',
+						httpsAgent: this.httpsAgent,
+						baseURL: this.baseURL,
+						url: '/api/service/customkpi-collection',
+						headers: { 'Authorization': 'Bearer '+this.kpiRepToken },
+						data: { 
+							customKpis
+						}
+					})
+					debug(respData)
+				}
 			)
-		}//)
+		)
 		
 		collectedPromises.push(this.promiseLimitCollect(async()=>{
-					const allKpis=_.flatten(_.map(standardKpis))
-					debug(`pushing kpi-collection: ${JSON.stringify(allKpis)}`)
+					debug(`pushing kpi-collection: ${JSON.stringify(standardKpis)}`)
 					let respData=await this.request({ 
 						method: 'post',
 						httpsAgent: this.httpsAgent,
@@ -155,7 +143,7 @@ module.exports = class SaKpiRepositoryClient {
 						url: '/api/service/kpi-collection',
 						headers: { 'Authorization': 'Bearer '+this.kpiRepToken },
 						data: { 
-							payload: allKpis
+							payload: standardKpis
 						}
 					})
 					debug(respData)
