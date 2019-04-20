@@ -145,25 +145,23 @@ module.exports = class SaKpiRepositoryClient {
 			)
 		}//)
 		
-		//_.forEach(standardKpis, kpi=>{
-		for(let serviceUid of _.keys(standardKpis)){
-			collectedPromises.push(this.promiseLimitCollect(async()=>{
-						debug(`pushing kpi-collection: ${JSON.stringify(standardKpis[serviceUid])}`)
-						let respData=await this.request({ 
-							method: 'post',
-							httpsAgent: this.httpsAgent,
-							baseURL: this.baseURL,
-							url: '/api/service/kpi-collection',
-							headers: { 'Authorization': 'Bearer '+this.kpiRepToken },
-							data: { 
-								payload: standardKpis[serviceUid]
-							}
-						})
-						debug(respData)
-					}
-				)
+		collectedPromises.push(this.promiseLimitCollect(async()=>{
+					const allKpis=_.flatten(_.map(standardKpis))
+					debug(`pushing kpi-collection: ${JSON.stringify(allKpis)}`)
+					let respData=await this.request({ 
+						method: 'post',
+						httpsAgent: this.httpsAgent,
+						baseURL: this.baseURL,
+						url: '/api/service/kpi-collection',
+						headers: { 'Authorization': 'Bearer '+this.kpiRepToken },
+						data: { 
+							payload: allKpis
+						}
+					})
+					debug(respData)
+				}
 			)
-		}//)
+		)
 		await Promise.all(collectedPromises)
 	}
 }
