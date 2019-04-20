@@ -126,7 +126,7 @@ module.exports = class SaKpiRepositoryClient {
 						url: '/api/service/customkpi-collection',
 						headers: { 'Authorization': 'Bearer '+this.kpiRepToken },
 						data: { 
-							customKpis
+							kpis: customKpis
 						}
 					})
 					debug(respData)
