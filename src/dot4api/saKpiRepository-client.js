@@ -152,6 +152,6 @@ module.exports = class SaKpiRepositoryClient {
 				}
 			)
 		)
-		return await Promise.all(collectedPromises)
+		return _.flatten(await Promise.all(collectedPromises))
 	}
 }
