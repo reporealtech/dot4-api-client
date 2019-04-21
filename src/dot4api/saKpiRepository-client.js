@@ -130,6 +130,7 @@ module.exports = class SaKpiRepositoryClient {
 						}
 					})
 					debug(respData)
+					return respData
 				}
 			)
 		)
@@ -147,9 +148,10 @@ module.exports = class SaKpiRepositoryClient {
 						}
 					})
 					debug(respData)
+					return respData
 				}
 			)
 		)
-		await Promise.all(collectedPromises)
+		return await Promise.all(collectedPromises)
 	}
 }
