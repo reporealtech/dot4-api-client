@@ -7,7 +7,8 @@
  * const createDot4Client = require('dot4-api-client')
  */
 
-const axios = require('axios');
+const axios = require('axios')
+, Queue = require('better-queue');
 const querystring = require('querystring');
 const _ = require('lodash');
 
@@ -76,7 +77,46 @@ function createDot4Client(config) {
   var _token;
   var _loginTimeout;
 
-  let dot4Client = { isConnected: false };
+  let dot4Client = { 
+	isConnected: false 
+	, requestQueue: new Queue(function (input, cb) {
+		let {method, url, data}=input
+		debug(`${MODULE_NAME}.request("${method}","${url}",) ...`);
+
+		const headers = {
+		  'content-type': 'application/json',
+		  Authorization: 'Bearer ' + _token.access_token
+		};
+		
+		axios({
+			method,
+			url,
+			data,
+			headers
+		  })
+		.then(response=>{
+			cb(null, response.data);
+		})
+		.catch(error=>{
+			if (error.response) {
+				cb(
+				  `${method} Request ${url} - Status Code: ${error.response.status} "${JSON.stringify(
+					error.response.data,
+					null,
+					2
+				  )}"`
+				);
+			} else if (error.request) {
+				cb(
+				  `${method} Request ${url} - TimeoutStatus Code: ${error.response.status} "${error.response.data}"`
+				);
+			} else {
+				cb(`${method} Request ${url} - Error: "${error.message}"`);
+			}
+		})
+
+	}, { concurrent: 1 })
+  };
 
   dot4Client.getVersion = async function() {
     const response = await axios.get('/api/version');
@@ -134,43 +174,17 @@ function createDot4Client(config) {
     debug(`${MODULE_NAME}.disconnect() finished.`);
   };
 
-  dot4Client.request = async function(method, url, data) {
-    debug(`${MODULE_NAME}.request("${method}","${url}",) ...`);
-
-    const headers = {
-      'content-type': 'application/json',
-      Authorization: 'Bearer ' + _token.access_token
-    };
-
-    try {
-      const response = await axios({
-        method,
-        url,
-        data,
-        headers
-      });
-
-      return response.data;
-    } catch (error) {
-      if (error.response) {
-        throw new Error(
-          `${method} Request ${url} - Status Code: ${error.response.status} "${JSON.stringify(
-            error.response.data,
-            null,
-            2
-          )}"`
-        );
-      } else if (error.request) {
-        throw new Error(
-          `${method} Request ${url} - TimeoutStatus Code: ${error.response.status} "${error.response.data}"`
-        );
-      } else {
-        throw new Error(`${method} Request ${url} - Error: "${error.message}"`);
-      }
-    } finally {
-      debug(`${MODULE_NAME}.request() finished.`);
-    }
-  };
+  dot4Client.request = function(method, url, data) {
+	  return new Promise((resolve, reject)=>{
+		  dot4Client.requestQueue.push({method, url, data}, function (err, result) {
+			  if(err)
+				  return reject(err)
+			  resolve(result)
+  		  });
+	  })
+  }
+    
+  
 
   dot4Client.getRequest = async function(url) {
     return await this.request('get', url, '');
