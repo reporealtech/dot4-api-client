@@ -10,22 +10,12 @@ const _ = require('lodash')
 const debug = require('../lib/debug');
 
 const requestQueue = new Queue(function (input, cb) {
-	let {method, url, data, _token}=input
+	let {method, url}=input
 	debug(`${MODULE_NAME}.request("${method}","${url}",) ...`);
 
-	const headers = {
-	  'content-type': 'application/json',
-	  Authorization: 'Bearer ' + _.get(_token,"access_token")
-	};
-	
-	axios({
-		method,
-		url,
-		data,
-		headers
-	  })
+	axios(input)
 	.then(response=>{
-		cb(null, response.data);
+		cb(null, response);
 	})
 	.catch(error=>{
 		if (error.response) {
@@ -55,21 +45,23 @@ module.exports = class SaKpiRepositoryClient {
 		this.httpsAgent = new https.Agent({  
 			rejectUnauthorized: false
 		})
-		this.promiseLimitCollect = promiseLimit(1)
 	}
 	
-	async request(options){
+	request(options){
 		debug(`request to url: ${options.url}`)
-		try {
-			return _.get(await axios(options),"data.data")
-		} catch(e) {
-			let errMsg=_.get(e,"response.data.error")
-			if(errMsg){
-				debug(errMsg)
-				throw new Error(errMsg)
-			}
-			throw e
-		}
+		return new Promise((resolve, reject)=>{
+		  requestQueue.push(options, function (e, result) {
+			  if(e){
+				let errMsg=_.get(e,"response.data.error")
+				if(errMsg){
+					debug(errMsg)
+					return reject(errMsg)
+				}
+				return reject(e)
+			  }
+			  resolve(_.get(result,"data.data"))
+  		  });
+	    })
 	}
 	
 	/**
@@ -166,40 +158,28 @@ module.exports = class SaKpiRepositoryClient {
 		
 		/** upload action */
 		let collectedPromises=[]
-		collectedPromises.push(this.promiseLimitCollect(async ()=>{
-					debug(`pushing customkpi-collection. kpis: ${JSON.stringify(customKpis)}`)
-					let respData=await this.request({ 
-						method: 'post',
-						httpsAgent: this.httpsAgent,
-						baseURL: this.baseURL,
-						url: '/api/service/customkpi-collection',
-						headers: { 'Authorization': 'Bearer '+this.kpiRepToken },
-						data: { 
-							kpis: customKpis
-						}
-					})
-					debug(respData)
-					return respData
+		collectedPromises.push(this.request({ 
+				method: 'post',
+				httpsAgent: this.httpsAgent,
+				baseURL: this.baseURL,
+				url: '/api/service/customkpi-collection',
+				headers: { 'Authorization': 'Bearer '+this.kpiRepToken },
+				data: { 
+					kpis: customKpis
 				}
-			)
+			})
 		)
 		
-		collectedPromises.push(this.promiseLimitCollect(async()=>{
-					debug(`pushing kpi-collection: ${JSON.stringify(standardKpis)}`)
-					let respData=await this.request({ 
-						method: 'post',
-						httpsAgent: this.httpsAgent,
-						baseURL: this.baseURL,
-						url: '/api/service/kpi-collection',
-						headers: { 'Authorization': 'Bearer '+this.kpiRepToken },
-						data: { 
-							payload: standardKpis
-						}
-					})
-					debug(respData)
-					return respData
+		collectedPromises.push(this.request({ 
+				method: 'post',
+				httpsAgent: this.httpsAgent,
+				baseURL: this.baseURL,
+				url: '/api/service/kpi-collection',
+				headers: { 'Authorization': 'Bearer '+this.kpiRepToken },
+				data: { 
+					payload: standardKpis
 				}
-			)
+			})
 		)
 		return _.flatten(await Promise.all(collectedPromises))
 	}
