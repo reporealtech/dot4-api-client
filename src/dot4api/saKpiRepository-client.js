@@ -2,12 +2,51 @@
 
 const _ = require('lodash')
 , axios = require('axios')
+, Queue = require('better-queue')
 , https = require('https')
 , moment= require("moment")
-, promiseLimit = require('p-limit')
 ;
 
 const debug = require('../lib/debug');
+
+const requestQueue = new Queue(function (input, cb) {
+	let {method, url, data, _token}=input
+	debug(`${MODULE_NAME}.request("${method}","${url}",) ...`);
+
+	const headers = {
+	  'content-type': 'application/json',
+	  Authorization: 'Bearer ' + _.get(_token,"access_token")
+	};
+	
+	axios({
+		method,
+		url,
+		data,
+		headers
+	  })
+	.then(response=>{
+		cb(null, response.data);
+	})
+	.catch(error=>{
+		if (error.response) {
+			cb(
+			  `${method} Request ${url} - Status Code: ${error.response.status} "${JSON.stringify(
+				error.response.data,
+				null,
+				2
+			  )}"`
+			);
+		} else if (error.request) {
+			cb(
+			  `${method} Request ${url} - TimeoutStatus Code: ${error.response.status} "${error.response.data}"`
+			);
+		} else {
+			cb(`${method} Request ${url} - Error: "${error.message}"`);
+		}
+	})
+
+}, { concurrent: 1 })
+
 
 module.exports = class SaKpiRepositoryClient {
 	constructor(config) {
@@ -50,6 +89,9 @@ module.exports = class SaKpiRepositoryClient {
 		this.kpiRepToken=_.get(kpiRepLogin,"access_token")
 		debug(`kpiRepToken: ${this.kpiRepToken.substring(0,10)}...`)
 		
+		// if(!this.allServices)
+			await this.getAllServices()
+		
 	}
 	
 	async getAllServices(){
@@ -70,35 +112,42 @@ module.exports = class SaKpiRepositoryClient {
 	/**
 	 *
 	 * data=[
-	 *   { service: "uid|name", date: "2019-04-15", value: 4, kpi: "volumeTotal" }
+	 *   { date: "2019-04-15", value: 4, service: "uid|name", kpi: "volumeTotal" },
+	 *   { date: "2019-04-15", value: 4 }
 	 * ]
 	 *
 	 */
-	async uploadKpis(data){
-		if(!this.allServices)
-			await this.getAllServices()
-		
+	async uploadKpis(data, globalServiceP, globalKpi){
 		let dataArray=data
 		, customKpis=[]
 		, standardKpis=[]
+		, globalServiceUid
 		;
 		
 		if(!_.isArray(data))
 			dataArray=[data]
 		
+		if(globalServiceP){
+			globalServiceUid=_.get( _.find(this.allServices, o=>o.name==globalServiceP||o.uid==globalServiceP), 'uid')
+		}
+		
 		/**
 		 * remodelling of data: we need the data grouped per service
 		 */
 		_.forEach(dataArray, dataRow=>{
-			let serviceUid=_.get( _.find(this.allServices, o=>o.name==dataRow.service||o.uid==dataRow.service ), 'uid')
+			let serviceUid=globalServiceUid
+			if(dataRow.service)
+				serviceUid=_.get( _.find(this.allServices, o=>o.name==dataRow.service||o.uid==dataRow.service ), 'uid')
 			
 			if(!serviceUid) {
-				debug("no dot4 service found for "+dataRow.service+". Skipping it for now.")
+				debug(`no dot4 service found for ${globalServiceP}, ${dataRow.service}. Skipping it for now.`)
 				return
 			}
 			
 			let targetUploadObject=standardKpis
-			if( _.find(this.allServices,s=>_.isArray(s.kpiDefinitions)&&s.kpiDefinitions.indexOf(dataRow.kpi)>=0) ){
+			, kpi=dataRow.kpi||globalKpi
+			;
+			if( _.find(this.allServices,s=>_.isArray(s.kpiDefinitions)&&s.kpiDefinitions.indexOf(kpi)>=0) ){
 				targetUploadObject=customKpis
 			}
 			
@@ -112,7 +161,7 @@ module.exports = class SaKpiRepositoryClient {
 				targetUploadObject.push(kpiValues)
 				kpiValues.uid = serviceUid
 			}
-			kpiValues[dataRow.kpi]=dataRow.value
+			kpiValues[kpi]=dataRow.value
 		})
 		
 		/** upload action */

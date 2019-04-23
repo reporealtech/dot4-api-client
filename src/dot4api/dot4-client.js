@@ -28,6 +28,44 @@ async function reconnect(that) {
   await that.connect();
 }
 
+const requestQueue = new Queue(function (input, cb) {
+	let {method, url, data, _token}=input
+	debug(`${MODULE_NAME}.request("${method}","${url}",) ...`);
+
+	const headers = {
+	  'content-type': 'application/json',
+	  Authorization: 'Bearer ' + _.get(_token,"access_token")
+	};
+	
+	axios({
+		method,
+		url,
+		data,
+		headers
+	  })
+	.then(response=>{
+		cb(null, response.data);
+	})
+	.catch(error=>{
+		if (error.response) {
+			cb(
+			  `${method} Request ${url} - Status Code: ${error.response.status} "${JSON.stringify(
+				error.response.data,
+				null,
+				2
+			  )}"`
+			);
+		} else if (error.request) {
+			cb(
+			  `${method} Request ${url} - TimeoutStatus Code: ${error.response.status} "${error.response.data}"`
+			);
+		} else {
+			cb(`${method} Request ${url} - Error: "${error.message}"`);
+		}
+	})
+
+}, { concurrent: 1 })
+
 /**
  * The main dot4 Client Creation function
  * @param {object} - configuration object for connecting to the dot4 api
@@ -79,48 +117,10 @@ function createDot4Client(config) {
 
   let dot4Client = { 
 	isConnected: false 
-	, requestQueue: new Queue(function (input, cb) {
-		let {method, url, data}=input
-		debug(`${MODULE_NAME}.request("${method}","${url}",) ...`);
-
-		const headers = {
-		  'content-type': 'application/json',
-		  Authorization: 'Bearer ' + _token.access_token
-		};
-		
-		axios({
-			method,
-			url,
-			data,
-			headers
-		  })
-		.then(response=>{
-			cb(null, response.data);
-		})
-		.catch(error=>{
-			if (error.response) {
-				cb(
-				  `${method} Request ${url} - Status Code: ${error.response.status} "${JSON.stringify(
-					error.response.data,
-					null,
-					2
-				  )}"`
-				);
-			} else if (error.request) {
-				cb(
-				  `${method} Request ${url} - TimeoutStatus Code: ${error.response.status} "${error.response.data}"`
-				);
-			} else {
-				cb(`${method} Request ${url} - Error: "${error.message}"`);
-			}
-		})
-
-	}, { concurrent: 1 })
   };
 
   dot4Client.getVersion = async function() {
-    const response = await axios.get('/api/version');
-    return response.data;
+    return await this.getRequest('/api/version');
   };
 
   dot4Client.getUserInfo = async function() {
@@ -139,9 +139,9 @@ function createDot4Client(config) {
     };
 
     try {
-      const response = await axios.post('/token', querystring.stringify(loginParams));
-
-      _token = response.data;
+      // const response = await axios.post('/token', querystring.stringify(loginParams));
+      // _token = response.data;
+	  _token = await this.postRequest('/token', querystring.stringify(loginParams));
       
       axios.defaults.headers.common['Authorization'] = 'Bearer ' + _token.access_token;
       this.isConnected = true;
@@ -176,7 +176,7 @@ function createDot4Client(config) {
 
   dot4Client.request = function(method, url, data) {
 	  return new Promise((resolve, reject)=>{
-		  dot4Client.requestQueue.push({method, url, data}, function (err, result) {
+		  requestQueue.push({method, url, data, _token}, function (err, result) {
 			  if(err)
 				  return reject(err)
 			  resolve(result)
