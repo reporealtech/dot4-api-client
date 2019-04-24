@@ -11,7 +11,7 @@ const debug = require('../lib/debug');
 
 const requestQueue = new Queue(function (input, cb) {
 	let {method, url}=input
-	debug(`${MODULE_NAME}.request("${method}","${url}",) ...`);
+	debug(`SaKpiRepositoryClient.request("${method}","${url}",) ...`);
 
 	axios(input)
 	.then(response=>{
