@@ -26,7 +26,7 @@ class CI {
 	  // debug(`creating object of type ${this.constructor.name}`)
 	  this.ciTypeAlias=this.constructor.getCiTypeAlias() || _.get(ciProps,"ciTypeAlias"); //for example PERS, COMP, ...
 	  
-    this.$type = _.get(ciProps,"$type") || 'Common.DomainModels.ConfigurationMgmt.CI, Realtech.Common.DomainModels';
+    this.$type = _.get(ciProps,"$type") || 'Common.DomainModels.ConfigurationMgmt.CI, Realtech.Esm.Common.DomainModels';
     this.id = _.get(ciProps,"id") || 0;
 	
     this.ciTypeId = _.get(ciProps,"ciTypeId") || 0;

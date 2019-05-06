@@ -281,6 +281,10 @@ class ConfigurationManagementApi extends BaseApi {
     }
   }
 
+  /**
+   * @param ci
+   * @param ciTypeUuid: not needed if ci.ciTypeId is set
+   */
   async createCi(ci, ciTypeUuid) {
     try {
       debug(`${this.name}.createCi('${JSON.stringify(ci)}', '${ciTypeUuid}') ...`);
@@ -372,6 +376,22 @@ class ConfigurationManagementApi extends BaseApi {
       return error;
     } finally {
       debug(`${this.name}.deleteCi(...) finished.`);
+    }
+  }
+  
+  async getRelationsForCI(ci_id, filter) {
+    debug(`${this.name}.getRelation(${filter}) ...`);
+
+    let url = `api/CIRelations/forCI/${ci_id}`;
+	if(filter)
+		url+=`?$filter=${filter}`
+
+    try {
+      return await this.dot4Client.getRequest(url);
+    } catch (error) {
+      return error;
+    } finally {
+      debug(`${this.name}.getRelation(${filter}) finished.`);
     }
   }
 

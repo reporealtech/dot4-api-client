@@ -44,6 +44,7 @@ const requestQueue = new Queue(function (input, cb) {
 		headers
 	  })
 	.then(response=>{
+		// debug(`####### response! statusCode: ${response.status}, error: ${response.error}`)
 		cb(null, response.data);
 	})
 	.catch(error=>{

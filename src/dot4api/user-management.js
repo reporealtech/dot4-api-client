@@ -125,7 +125,7 @@ module.exports = class UserManagementApi extends ConfigurationManagementApi {
 
   async loadAllUsers(){
 	  debug("loadAllUsers()")
-	  return await this.loadAllCisForFilter(`ciTypeId eq ${Person.getCiTypeAttribute(this.ciTypes, 'id')}`,{ciTypeName: Person.getCiTypeAttribute(this.ciTypes, 'name')})
+	  return await this.loadAllCisForFilter(`ciTypeId eq ${Person.getCiTypeAttribute(this.ciTypes, 'id')}`, { ciTypeName: Person.getCiTypeAttribute(this.ciTypes, "name") })
   }
  
  async createDepartment(c) {
@@ -133,9 +133,20 @@ module.exports = class UserManagementApi extends ConfigurationManagementApi {
 	return await this.createCi(new Department(c, this.ciTypes))
   }
  
-  async loadAllDepartments() {
-	  debug("loadAllDepartments()")
-	  return await this.loadAllCisForFilter(`ciTypeId eq ${Department.getCiTypeAttribute(this.ciTypes, 'id')}`,{ciTypeName: Department.getCiTypeAttribute(this.ciTypes, 'name')})
+  async loadDepartment(departmentName, companyID) {
+	  debug(`loadDepartment(${departmentName}, ${companyID})`)
+	  let departments=await this.loadAllCisForFilter(`ciTypeId eq ${Department.getCiTypeAttribute(this.ciTypes, 'id')}`,  
+		{ 
+			ciTypeName : Department.getCiTypeAttribute(this.ciTypes, "name")
+			, name: departmentName
+		}
+	  )
+	  debug("!!!!!!!!!!!!!! departments: "+JSON.stringify(departments))
+	  for(let dep of departments){
+		let companyRelation = _.get(await this.getRelationsForCI(dep.id, "(relationTypeUuid eq '575689b9-4851-429e-8785-5f6ee3dacb1b')"), "items[0]")
+		dep.company_DEPA=_.get(companyRelation, "remoteCIId")
+	  }
+	  return _.first(departments);
   }
   
   async createCompany(c) {
@@ -145,7 +156,7 @@ module.exports = class UserManagementApi extends ConfigurationManagementApi {
   
   async loadAllCompanies() {
 	  debug("loadAllCompanies()")
-	  return await this.loadAllCisForFilter(`ciTypeId eq ${Company.getCiTypeAttribute(this.ciTypes, 'id')}`,{ciTypeName: Company.getCiTypeAttribute(this.ciTypes, 'name')})
+	  return await this.loadAllCisForFilter(`ciTypeId eq ${Company.getCiTypeAttribute(this.ciTypes, 'id')}`, { ciTypeName : Company.getCiTypeAttribute(this.ciTypes, "name")})
   }
   
 }
