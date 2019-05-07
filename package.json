@@ -1,6 +1,6 @@
 {
   "name": "dot4-api-client",
-  "version": "1.1.31",
+  "version": "1.1.32",
   "description": "client for accessing dot4 api",
   "main": "./src/index.js",
   "scripts": {
@@ -20,7 +20,8 @@
     "moment": "^2.24.0",
     "request": "^2.88.0",
     "request-promise": "^4.2.2",
-    "traverse": "^0.6.6"
+    "traverse": "^0.6.6",
+    "uuid": "^3.3.2"
   },
   "devDependencies": {
     "chai": "^4.2.0",

@@ -5,6 +5,7 @@ const _ = require('lodash')
 , Queue = require('better-queue')
 , https = require('https')
 , moment= require("moment")
+, uuidv4 = require('uuid/v4');
 ;
 
 const debug = require('../lib/debug');
@@ -86,10 +87,38 @@ module.exports = class SaKpiRepositoryClient {
 		
 	}
 	
+	async defineCustomKpi(param) {
+		debug(`define Custom Kpi [${JSON.stringify(param)}]`)
+		
+		if (_.isUndefined(_.get(param, "name"))) 
+			throw new Error(`you must define at least a name for your new kpi!`);
+		
+		let kpiAttrs={
+			"uid": _.get(param, "uid") || uuidv4(),
+			"name": param.name,
+			"label": _.get(param, "label") ||  param.name,
+			"description": _.get(param, "description") || param.name,
+			"datatype": _.get(param, "datatype") || "number",
+			"storagetype": _.get(param, "storagetype") || "hour",
+			"isSelected": _.has(param, "isSelected") ? _.get(param, "isSelected") : true,
+			"color": _.get(param, "color") || "black",
+			"charttype": _.get(param, "charttype") || "line"
+		}
+		
+		return await this.request({ 
+			method: 'post',
+			httpsAgent: this.httpsAgent,
+			baseURL: this.baseURL,
+			url: '/api/kpi-definition',
+			headers: { 'Authorization': 'Bearer '+this.kpiRepToken },
+			data: kpiAttrs
+		})
+	}
+	
+	/**
+	 * load Service IDs from Dot4 Kpi Repository
+	 */
 	async getAllServices(){
-		/**
-		 * load Service IDs from Dot4 Kpi Repository
-		 */
 		debug("get Dot4 service IDs from dot4SaKpiRepository")
 		this.allServices=await this.request({ 
 		  method: 'get',
