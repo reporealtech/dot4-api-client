@@ -68,10 +68,10 @@ module.exports = class UserManagementApi extends ConfigurationManagementApi {
   }
   
    async insertPerson(dot4user){
-	   debug('dot4Api.createPerson');
+	   debug(`dot4Api.createPerson: ${dot4user.name}`);
 	   
 	   if(dot4user.isDeactivated) {
-		   debug("won't create deactivated person")
+		   debug(`won't create deactivated person: ${dot4user.name}`)
 		   return;
 	   }
 	   
@@ -90,7 +90,7 @@ module.exports = class UserManagementApi extends ConfigurationManagementApi {
 		await this.assignDefaultRoles(createdPerson.userId_PERS);
 	}
    
-	debug(`Person [${createdPerson.email_PERS}] created.`);
+	debug(`Person created: ${dot4user.name}`);
 	return createdPerson
   }
   
@@ -128,7 +128,7 @@ module.exports = class UserManagementApi extends ConfigurationManagementApi {
 	  return await this.loadAllCisForFilter(`ciTypeId eq ${Person.getCiTypeAttribute(this.ciTypes, 'id')}`, { ciTypeName: Person.getCiTypeAttribute(this.ciTypes, "name") })
   }
  
- async createDepartment(c) {
+  async createDepartment(c) {
 	  debug(`createDepartment(${c.name})`)
 	return await this.createCi(new Department(c, this.ciTypes))
   }
@@ -141,7 +141,7 @@ module.exports = class UserManagementApi extends ConfigurationManagementApi {
 			, name: departmentName
 		}
 	  )
-	  debug("!!!!!!!!!!!!!! departments: "+JSON.stringify(departments))
+	  debug(`#departments with name "${departmentName}": `+departments.length)
 	  for(let dep of departments){
 		let companyRelation = _.get(await this.getRelationsForCI(dep.id, "(relationTypeUuid eq '575689b9-4851-429e-8785-5f6ee3dacb1b')"), "items[0]")
 		dep.company_DEPA=_.get(companyRelation, "remoteCIId")

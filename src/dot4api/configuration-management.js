@@ -320,9 +320,7 @@ class ConfigurationManagementApi extends BaseApi {
   }
 
   async updateCi(ci) {
-	  let  updatedCi;
 	  
-    try {
       debug(`${this.name}.updateCi({name: ${ci.name}, id: ${ci.id}) ...`);
 
       if (_.isNil(ci)) {
@@ -344,14 +342,8 @@ class ConfigurationManagementApi extends BaseApi {
       }
 
 	  // debug("make putRequest");
-      updatedCi = await this.dot4Client.putRequest(url, ci);
-      
-    } catch (error) {
-      return error;
-    } finally {
-      debug(`${this.name}.updateCi(...) finished.`);
-    }
-	return updatedCi;
+      return await this.dot4Client.putRequest(url, ci);
+    
   }
   
   async deleteCi(ci) {
@@ -472,7 +464,8 @@ class ConfigurationManagementApi extends BaseApi {
 		  const newP=await this.safeDot4ClientRequest('get', url)
 		  cis.push(...newP.items)
 		  pCount=newP.count
-		  debug(`loadAllCisForFilter(): must load ${pCount} CIs with serverFilter ${JSON.stringify(serverFilter)}. first item: ${JSON.stringify(_.first(newP.items))}`)
+		  debug(`loadAllCisForFilter(): must load ${pCount} CIs with serverFilter ${JSON.stringify(serverFilter)}, clientFilter ${JSON.stringify(clientFilter)}. `)
+		  // debug(`first item: ${JSON.stringify(_.first(newP.items))}`)
 		  skip++
 	  }
 	  if(clientFilter)

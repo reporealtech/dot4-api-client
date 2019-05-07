@@ -38,6 +38,7 @@ class Person extends CI {
 	//=============
 	
 	this.userExisting_PERS = true
+	this.isRia = _.has(personProps,"isRia") && _.get(personProps,"isRia")
 	if(_.has(personProps,"userExisting_PERS") || _.has(personProps,"userExisting")){
 		this.userExisting_PERS=_.has(personProps,"userExisting_PERS") ? _.get(personProps,"userExisting_PERS") : _.get(personProps,"userExisting")
 	}

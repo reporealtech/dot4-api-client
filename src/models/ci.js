@@ -15,7 +15,7 @@ class CI {
 		// debug(`calling ${this.name}.getCiTypeAttribute()`)
 		let alias=this.getCiTypeAlias()
 		if(alias) {
-			debug(`ciType(${alias}): ${JSON.stringify(_.find(ciTypes, {alias}))}`)
+			// debug(`ciType(${alias}): ${JSON.stringify(_.find(ciTypes, {alias}))}`)
 			return _.get( _.find(ciTypes, {alias}), attrName)
 		} else {
 			debug(`Error in ci.js => getCiTypeAttribute(${attrName}): NO ALIAS!`)
@@ -24,14 +24,15 @@ class CI {
 	
   constructor(ciProps, ciTypes) {
 	  // debug(`creating object of type ${this.constructor.name}`)
-	  this.ciTypeAlias=this.constructor.getCiTypeAlias() || _.get(ciProps,"ciTypeAlias"); //for example PERS, COMP, ...
+	  let ciTypeAliasSym=Symbol("ciTypeAlias");
+	  this[ciTypeAliasSym]=this.constructor.getCiTypeAlias() || _.get(ciProps,"ciTypeAlias"); //for example PERS, COMP, ...
 	  
     this.$type = _.get(ciProps,"$type") || 'Common.DomainModels.ConfigurationMgmt.CI, Realtech.Esm.Common.DomainModels';
     this.id = _.get(ciProps,"id") || 0;
 	
     this.ciTypeId = _.get(ciProps,"ciTypeId") || 0;
-	if(this.ciTypeAlias && ciTypes){
-		this.ciTypeId = _.get(_.find(ciTypes, {alias: this.ciTypeAlias}), "id")
+	if(this[ciTypeAliasSym] && ciTypes){
+		this.ciTypeId = _.get(_.find(ciTypes, {alias: this[ciTypeAliasSym]}), "id")
 	}
 	// debug(`object of type ${this.constructor.name} gets ciTypeId: ${this.ciTypeId}. `)
 	
@@ -51,17 +52,17 @@ class CI {
 
 	//Custom Properties: Zusaetzliche Attribute, insbesondere mandantenspezifische
 	//=================
-	if(this.ciTypeAlias){
+	if(this[ciTypeAliasSym]){
 		_.forEach(ciProps, (v,k_orig)=>{
 			let k_other=k_orig
 			, k_ALIAS=k_orig
 			, k=k_orig
 			;
-			   if(k_orig.endsWith("_"+this.ciTypeAlias)){
+			   if(k_orig.endsWith("_"+this[ciTypeAliasSym])){
 				   k_other = k_orig.substring(0,k_orig.length-5);
 				   k=k_other
 			   }else{
-				   k_other += "_"+this.ciTypeAlias;
+				   k_other += "_"+this[ciTypeAliasSym];
 				   k_ALIAS=k_other
 			   }
 			
