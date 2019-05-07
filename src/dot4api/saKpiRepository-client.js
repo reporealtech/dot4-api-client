@@ -158,29 +158,35 @@ module.exports = class SaKpiRepositoryClient {
 		
 		/** upload action */
 		let collectedPromises=[]
-		collectedPromises.push(this.request({ 
-				method: 'post',
-				httpsAgent: this.httpsAgent,
-				baseURL: this.baseURL,
-				url: '/api/service/customkpi-collection',
-				headers: { 'Authorization': 'Bearer '+this.kpiRepToken },
-				data: { 
-					kpis: customKpis
-				}
-			})
-		)
+		if(customKpis.length)
+			collectedPromises.push(this.request({ 
+					method: 'post',
+					httpsAgent: this.httpsAgent,
+					baseURL: this.baseURL,
+					url: '/api/service/customkpi-collection',
+					headers: { 'Authorization': 'Bearer '+this.kpiRepToken },
+					data: { 
+						kpis: customKpis
+					}
+				})
+			)
 		
-		collectedPromises.push(this.request({ 
-				method: 'post',
-				httpsAgent: this.httpsAgent,
-				baseURL: this.baseURL,
-				url: '/api/service/kpi-collection',
-				headers: { 'Authorization': 'Bearer '+this.kpiRepToken },
-				data: { 
-					payload: standardKpis
-				}
-			})
-		)
+		if(standardKpis.length)
+			collectedPromises.push(this.request({ 
+					method: 'post',
+					httpsAgent: this.httpsAgent,
+					baseURL: this.baseURL,
+					url: '/api/service/kpi-collection',
+					headers: { 'Authorization': 'Bearer '+this.kpiRepToken },
+					data: { 
+						payload: standardKpis
+					}
+				})
+			)
+		
+		if(!collectedPromises.length)
+			return "nothing to upload"
+			
 		return _.flatten(await Promise.all(collectedPromises))
 	}
 }
