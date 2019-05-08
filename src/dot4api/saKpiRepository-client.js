@@ -120,6 +120,18 @@ module.exports = class SaKpiRepositoryClient {
 		})
 	}
 	
+	async deleteCustomKpi(uid) {
+		debug(`delete Custom Kpi [${uid}]`)
+		return await this.request({ 
+			method: 'post',
+			httpsAgent: this.httpsAgent,
+			baseURL: this.baseURL,
+			url: '/api/kpi-definition/delete',
+			headers: { 'Authorization': 'Bearer '+this.kpiRepToken },
+			data: {uid}
+		})
+	}
+	
 	/**
 	 * load Service IDs from Dot4 Kpi Repository
 	 */
