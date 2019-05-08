@@ -69,7 +69,7 @@ module.exports = class SaKpiRepositoryClient {
 	 * login to Dot4 Kpi Repository. 
 	 */
 	async login() {
-		debug(`login to url: ${this.baseURL+'/api/token'} with apiKey: ${this.apiKey.substring(0,10)}...`)
+		debug(`login to url: ${this.baseURL+'/api/token'} with apiKey: ${this.apiKey?this.apiKey.substring(0,10):'-'}...`)
 		let kpiRepLogin=await this.request({ 
 		  httpsAgent: this.httpsAgent,
 		  method: 'post',
@@ -80,10 +80,10 @@ module.exports = class SaKpiRepositoryClient {
 		   { apiKey:this.apiKey }
 		})
 		this.kpiRepToken=_.get(kpiRepLogin,"access_token")
-		debug(`kpiRepToken: ${this.kpiRepToken.substring(0,10)}...`)
+		debug(`kpiRepToken: ${this.kpiRepToken?this.kpiRepToken.substring(0,10):'-'}...`)
 		
 		// if(!this.allServices)
-			await this.getAllServices()
+			// await this.getAllServices()
 		
 	}
 	
@@ -92,6 +92,10 @@ module.exports = class SaKpiRepositoryClient {
 		
 		if (_.isUndefined(_.get(param, "name"))) 
 			throw new Error(`you must define at least a name for your new kpi!`);
+		
+		await this.getAllKpis()
+		if(_.some(this.allKpis, kpi=>kpi.name==param.name))
+			throw new Error(`there is already a kpi existing with the name ${param.name}!`);
 		
 		let kpiAttrs={
 			"uid": _.get(param, "uid") || uuidv4(),
@@ -102,7 +106,8 @@ module.exports = class SaKpiRepositoryClient {
 			"storagetype": _.get(param, "storagetype") || "hour",
 			"isSelected": _.has(param, "isSelected") ? _.get(param, "isSelected") : true,
 			"color": _.get(param, "color") || "black",
-			"charttype": _.get(param, "charttype") || "line"
+			"charttype": _.get(param, "charttype") || "line",
+			"aggregate": _.get(param, "aggregate") || "sum"
 		}
 		
 		return await this.request({ 
@@ -130,6 +135,18 @@ module.exports = class SaKpiRepositoryClient {
 		debug(`loaded ${this.allServices.length} services`)
 	}
 	
+	async getAllKpis(){
+		debug("get KPIs from dot4SaKpiRepository")
+		this.allKpis=await this.request({ 
+		  method: 'get',
+		  httpsAgent: this.httpsAgent,
+		  baseURL: this.baseURL,
+		  url: '/api/kpi-definition',
+		  headers: { 'Authorization': 'Bearer '+this.kpiRepToken },
+		})
+		debug(`loaded ${this.allKpis.length} KPIs`)
+	}
+	
 	/**
 	 *
 	 * data=[
@@ -144,6 +161,8 @@ module.exports = class SaKpiRepositoryClient {
 		, standardKpis=[]
 		, globalServiceUid
 		;
+		
+		await this.getAllServices()
 		
 		if(!_.isArray(data))
 			dataArray=[data]
