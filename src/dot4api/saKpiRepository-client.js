@@ -163,6 +163,7 @@ module.exports = class SaKpiRepositoryClient {
 		;
 		
 		await this.getAllServices()
+		await this.getAllKpis()
 		
 		if(!_.isArray(data))
 			dataArray=[data]
@@ -187,7 +188,7 @@ module.exports = class SaKpiRepositoryClient {
 			let targetUploadObject=standardKpis
 			, kpi=dataRow.kpi||globalKpi
 			;
-			if( _.find(this.allServices,s=>_.isArray(s.kpiDefinitions)&&s.kpiDefinitions.indexOf(kpi)>=0) ){
+			if(_.some(this.allKpis, oneOfAllKpi=>oneOfAllKpi.name==kpi && !oneOfAllKpi.isSystem)){
 				targetUploadObject=customKpis
 			}
 			
@@ -206,7 +207,8 @@ module.exports = class SaKpiRepositoryClient {
 		
 		/** upload action */
 		let collectedPromises=[]
-		if(customKpis.length)
+		if(customKpis.length){
+			// debug(JSON.stringify(customKpis))
 			collectedPromises.push(this.request({ 
 					method: 'post',
 					httpsAgent: this.httpsAgent,
@@ -218,8 +220,9 @@ module.exports = class SaKpiRepositoryClient {
 					}
 				})
 			)
-		
-		if(standardKpis.length)
+		}
+		if(standardKpis.length){
+			// debug(JSON.stringify(standardKpis))
 			collectedPromises.push(this.request({ 
 					method: 'post',
 					httpsAgent: this.httpsAgent,
@@ -231,7 +234,7 @@ module.exports = class SaKpiRepositoryClient {
 					}
 				})
 			)
-		
+		}
 		if(!collectedPromises.length)
 			return "nothing to upload"
 			
