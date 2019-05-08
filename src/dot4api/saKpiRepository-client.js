@@ -152,6 +152,7 @@ module.exports = class SaKpiRepositoryClient {
 	 * data=[
 	 *   { date: "2019-04-15", value: 4, service: "uid|name", kpi: "volumeTotal" },
 	 *   { date: "2019-04-15", value: 4 }
+	 *   { value: 4 }
 	 * ]
 	 *
 	 */
@@ -182,6 +183,11 @@ module.exports = class SaKpiRepositoryClient {
 			
 			if(!serviceUid) {
 				debug(`no dot4 service found for ${globalServiceP}, ${dataRow.service}. Skipping it for now.`)
+				return
+			}
+			
+			if( _.isUndefined(dataRow.value) ) {
+				debug(`no value set in this row. Skipping it for now.`)
 				return
 			}
 			
