@@ -120,15 +120,14 @@ module.exports = class SaKpiRepositoryClient {
 		})
 	}
 	
-	async deleteCustomKpi(uid) {
-		debug(`delete Custom Kpi [${uid}]`)
+	async deleteKpi(uid) {
+		debug(`delete Kpi [${uid}]`)
 		return await this.request({ 
-			method: 'post',
+			method: 'delete',
 			httpsAgent: this.httpsAgent,
 			baseURL: this.baseURL,
-			url: '/api/kpi-definition/delete',
-			headers: { 'Authorization': 'Bearer '+this.kpiRepToken },
-			data: {uid}
+			url: '/api/kpi-definition/'+uid,
+			headers: { 'Authorization': 'Bearer '+this.kpiRepToken }
 		})
 	}
 	
@@ -157,6 +156,7 @@ module.exports = class SaKpiRepositoryClient {
 		  headers: { 'Authorization': 'Bearer '+this.kpiRepToken },
 		})
 		debug(`loaded ${this.allKpis.length} KPIs`)
+		return this.allKpis
 	}
 	
 	/**
