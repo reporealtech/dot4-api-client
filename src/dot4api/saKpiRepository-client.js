@@ -159,6 +159,31 @@ module.exports = class SaKpiRepositoryClient {
 		return this.allKpis
 	}
 	
+	async downloadKpis(serviceP, starttime, endtime, interval){
+		await this.getAllServices()
+		await this.getAllKpis()
+		
+		const serviceUid=_.get( _.find(this.allServices, o=>o.name==serviceP||o.uid==serviceP), 'uid')
+		
+		if(!serviceUid)
+			return "cannot download KPIs because of invalid service parameter: "+serviceP
+		
+		/** download action */
+		return await this.request({ 
+			method: 'get',
+			httpsAgent: this.httpsAgent,
+			baseURL: this.baseURL,
+			url: '/api/service/kpi/history-chart',
+			headers: { 'Authorization': 'Bearer '+this.kpiRepToken },
+			params: {
+				serviceUids: [serviceUid]
+				, starttime
+				, endtime
+				, interval
+			}
+		})
+	}
+	
 	/**
 	 *
 	 * data=[
