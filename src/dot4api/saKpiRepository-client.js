@@ -101,7 +101,7 @@ module.exports = class SaKpiRepositoryClient {
 			"uid": _.get(param, "uid") || uuidv4(),
 			"name": param.name,
 			"label": _.get(param, "label") ||  param.name,
-			"description": _.get(param, "description") || param.name,
+			"description": _.get(param, "description") || _.get(param, "label") || param.name,
 			"datatype": _.get(param, "datatype") || "number",
 			"storagetype": _.get(param, "storagetype") || "hour",
 			"isSelected": _.has(param, "isSelected") ? _.get(param, "isSelected") : true,
