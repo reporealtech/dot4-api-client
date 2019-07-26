@@ -21,15 +21,15 @@ const requestQueue = new Queue(function (input, cb) {
 	.catch(error=>{
 		if (error.response) {
 			cb(
-			  `${method} Request ${url} - Status Code: ${error.response.status} "${JSON.stringify(
-				error.response.data,
+			  `${method} Request ${url} - Status Code: ${_.get(error, "response.status)} "${JSON.stringify(
+				_.get(error, "response.data),
 				null,
 				2
 			  )}"`
 			);
 		} else if (error.request) {
 			cb(
-			  `${method} Request ${url} - TimeoutStatus Code: ${error.response.status} "${error.response.data}"`
+			  `${method} Request ${url} - TimeoutStatus Code: ${_.get(error, "response.status)} "${_.get(error, "response.data)}"`
 			);
 		} else {
 			cb(`${method} Request ${url} - Error: "${error.message}"`);
