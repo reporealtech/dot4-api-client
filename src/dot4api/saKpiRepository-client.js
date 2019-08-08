@@ -11,7 +11,10 @@ const _ = require('lodash')
 const debug = require('../lib/debug');
 
 const requestQueue = new Queue(function (input, cb) {
-	let {method, url}=input
+	const {method, url, baseURL}=input
+	, completeUrl=baseURL+url
+	;
+	
 	debug(`SaKpiRepositoryClient.request("${method}","${url}",) ...`);
 
 	axios(input)
@@ -21,18 +24,18 @@ const requestQueue = new Queue(function (input, cb) {
 	.catch(error=>{
 		if (error.response) {
 			cb(
-			  `${method} Request ${url} - Status Code: ${_.get(error, "response.status")} ${JSON.stringify(
+			  `${method} Request ${completeUrl} - Status Code: ${_.get(error, "response.status")} ${JSON.stringify(
 				_.get(error, "response.data"),
 				null,
 				2
 			  )}`
 			);
-		} else if (error.request) {
-			cb(
-			  `${method} Request ${url} - TimeoutStatus Code: ${_.get(error, "response.status")} ${_.get(error, "response.data")}`
-			);
+		// } else if (error.request) {
+			// cb(
+			  // `${method} Request ${completeUrl} - TimeoutStatus Code: ${_.get(error, "response.status")} ${_.get(error, "response.data")}`
+			// );
 		} else {
-			cb(`${method} Request ${url} - Error: ${_.get(error,"message")}`);
+			cb(`${method} Request ${completeUrl} - Error: ${_.get(error,"message")}`);
 		}
 	})
 
@@ -50,6 +53,24 @@ module.exports = class SaKpiRepositoryClient {
 	
 	request(options){
 		debug(`request to url: ${options.url}`)
+		
+		if(!_.has(options, "baseURL"))
+			options.baseURL=this.baseURL
+		
+		if(!_.has(options, "httpsAgent"))
+			options.httpsAgent=this.httpsAgent
+		
+		if(!_.has(options, "rejectUnauthorized"))
+			options.rejectUnauthorized=false
+		
+		if(!_.has(options, "headers.Authorization") && this.kpiRepToken){
+			if(!_.has(options, "headers"))
+				options.headers={}
+			options.headers.Authorization = 'Bearer '+this.kpiRepToken 
+		}
+		
+		// options.secureProtocol='TLSv1_method'
+		
 		return new Promise((resolve, reject)=>{
 		  requestQueue.push(options, function (e, result) {
 			  if(e){
@@ -70,12 +91,13 @@ module.exports = class SaKpiRepositoryClient {
 	 */
 	async login() {
 		debug(`login to url: ${this.baseURL+'/api/token'} with apiKey: ${this.apiKey?this.apiKey.substring(0,10):'-'}...`)
+		
 		let kpiRepLogin=await this.request({ 
-		  httpsAgent: this.httpsAgent,
+		  // httpsAgent: this.httpsAgent,
 		  method: 'post',
-		  baseURL: this.baseURL,
+		  // baseURL: this.baseURL,
 		  url: '/api/token',
-		  rejectUnauthorized: false,
+		  // rejectUnauthorized: false,
 		  data: 
 		   { apiKey:this.apiKey }
 		})
@@ -112,10 +134,10 @@ module.exports = class SaKpiRepositoryClient {
 		
 		return await this.request({ 
 			method: 'post',
-			httpsAgent: this.httpsAgent,
-			baseURL: this.baseURL,
+			// httpsAgent: this.httpsAgent,
+			// baseURL: this.baseURL,
 			url: '/api/kpi-definition',
-			headers: { 'Authorization': 'Bearer '+this.kpiRepToken },
+			// headers: { 'Authorization': 'Bearer '+this.kpiRepToken },
 			data: kpiAttrs
 		})
 	}
@@ -124,10 +146,10 @@ module.exports = class SaKpiRepositoryClient {
 		debug(`delete Kpi [${uid}]`)
 		return await this.request({ 
 			method: 'delete',
-			httpsAgent: this.httpsAgent,
-			baseURL: this.baseURL,
+			// httpsAgent: this.httpsAgent,
+			// baseURL: this.baseURL,
 			url: '/api/kpi-definition/'+uid,
-			headers: { 'Authorization': 'Bearer '+this.kpiRepToken }
+			// headers: { 'Authorization': 'Bearer '+this.kpiRepToken }
 		})
 	}
 	
@@ -138,10 +160,10 @@ module.exports = class SaKpiRepositoryClient {
 		debug("get Dot4 service IDs from dot4SaKpiRepository")
 		this.allServices=await this.request({ 
 		  method: 'get',
-		  httpsAgent: this.httpsAgent,
-		  baseURL: this.baseURL,
+		  // httpsAgent: this.httpsAgent,
+		  // baseURL: this.baseURL,
 		  url: '/api/service',
-		  headers: { 'Authorization': 'Bearer '+this.kpiRepToken },
+		  // headers: { 'Authorization': 'Bearer '+this.kpiRepToken },
 		})
 		debug(`loaded ${this.allServices.length} services`)
 	}
@@ -150,10 +172,10 @@ module.exports = class SaKpiRepositoryClient {
 		debug("get KPIs from dot4SaKpiRepository")
 		this.allKpis=await this.request({ 
 		  method: 'get',
-		  httpsAgent: this.httpsAgent,
-		  baseURL: this.baseURL,
+		  // httpsAgent: this.httpsAgent,
+		  // baseURL: this.baseURL,
 		  url: '/api/kpi-definition',
-		  headers: { 'Authorization': 'Bearer '+this.kpiRepToken },
+		  // headers: { 'Authorization': 'Bearer '+this.kpiRepToken },
 		})
 		debug(`loaded ${this.allKpis.length} KPIs`)
 		return this.allKpis
@@ -171,10 +193,10 @@ module.exports = class SaKpiRepositoryClient {
 		/** download action */
 		return await this.request({ 
 			method: 'get',
-			httpsAgent: this.httpsAgent,
-			baseURL: this.baseURL,
+			// httpsAgent: this.httpsAgent,
+			// baseURL: this.baseURL,
 			url: '/api/service/kpi/history-chart',
-			headers: { 'Authorization': 'Bearer '+this.kpiRepToken },
+			// headers: { 'Authorization': 'Bearer '+this.kpiRepToken },
 			params: {
 				serviceUids: [serviceUid]
 				, starttime
@@ -254,10 +276,10 @@ module.exports = class SaKpiRepositoryClient {
 			// debug(JSON.stringify(customKpis))
 			collectedPromises.push(this.request({ 
 					method: 'post',
-					httpsAgent: this.httpsAgent,
-					baseURL: this.baseURL,
+					// httpsAgent: this.httpsAgent,
+					// baseURL: this.baseURL,
 					url: '/api/service/customkpi-collection',
-					headers: { 'Authorization': 'Bearer '+this.kpiRepToken },
+					// headers: { 'Authorization': 'Bearer '+this.kpiRepToken },
 					data: { 
 						kpis: customKpis
 					}
@@ -268,10 +290,10 @@ module.exports = class SaKpiRepositoryClient {
 			// debug(JSON.stringify(standardKpis))
 			collectedPromises.push(this.request({ 
 					method: 'post',
-					httpsAgent: this.httpsAgent,
-					baseURL: this.baseURL,
+					// httpsAgent: this.httpsAgent,
+					// baseURL: this.baseURL,
 					url: '/api/service/kpi-collection',
-					headers: { 'Authorization': 'Bearer '+this.kpiRepToken },
+					// headers: { 'Authorization': 'Bearer '+this.kpiRepToken },
 					data: { 
 						payload: standardKpis
 					}
