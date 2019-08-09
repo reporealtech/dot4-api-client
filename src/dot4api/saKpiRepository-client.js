@@ -2,10 +2,11 @@
 
 const _ = require('lodash')
 , axios = require('axios')
-, Queue = require('better-queue')
 , https = require('https')
 , moment= require("moment")
-, uuidv4 = require('uuid/v4');
+, Queue = require('better-queue')
+, tunnel = require('tunnel')
+, uuidv4 = require('uuid/v4')
 ;
 
 const debug = require('../lib/debug');
@@ -49,6 +50,18 @@ module.exports = class SaKpiRepositoryClient {
 		this.httpsAgent = new https.Agent({  
 			rejectUnauthorized: false
 		})
+		
+		if(process.env.https_proxy){
+			const urlPort=process.env.https_proxy.split(':')
+			
+			this.httpsTunnel = tunnel.httpsOverHttp({
+				proxy: {
+					host: urlPort.slice(0,-1).join(':')
+					, port: _.last(urlPort)
+					// , proxyAuth: 'user:password'
+				}
+			});
+		}
 	}
 	
 	request(options){
@@ -59,6 +72,10 @@ module.exports = class SaKpiRepositoryClient {
 		
 		if(!_.has(options, "httpsAgent"))
 			options.httpsAgent=this.httpsAgent
+		
+		if(this.httpsTunnel){
+			options.httpsAgent=this.httpsTunnel
+		}
 		
 		if(!_.has(options, "rejectUnauthorized"))
 			options.rejectUnauthorized=false
