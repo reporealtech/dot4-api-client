@@ -1,24 +1,38 @@
 'use strict';
 
 const _ = require('lodash')
-, axios = require('axios')
+// , axios = require('axios')
 , https = require('https')
 , moment= require("moment")
 , Queue = require('better-queue')
-, tunnel = require('tunnel')
+, rp = require('request')
+// , tunnel = require('tunnel')
 , uuidv4 = require('uuid/v4')
 ;
 
 const debug = require('../lib/debug');
 
 const requestQueue = new Queue(function (input, cb) {
+	if(input.baseURL)
+		input.baseUrl=input.baseURL //axios and rp compatibility
+	
 	const {method, url, baseURL}=input
 	, completeUrl=baseURL+url
 	;
 	
 	debug(`SaKpiRepositoryClient.request("${method}","${url}",) ...`);
 
-	axios(input)
+	// axios(input)
+	new Promise((resolve, reject)=>{
+		rp(input, function (error, response, body) {
+			if(error)
+				return reject(error)
+			if(response.status!=200)
+				return reject(`status: ${response.status}`)
+				
+			return resolve(body)
+		})
+	})
 	.then(response=>{
 		cb(null, response);
 	})
@@ -47,11 +61,11 @@ module.exports = class SaKpiRepositoryClient {
 	constructor(config) {
 		this.baseURL=config.url
 		this.apiKey=config.apiKey
-		this.httpsAgent = new https.Agent({  
-			rejectUnauthorized: false
-		})
+		// this.httpsAgent = new https.Agent({  
+			// rejectUnauthorized: false
+		// })
 		
-		if(process.env.https_proxy){
+		/*if(process.env.https_proxy){
 			const urlPort=process.env.https_proxy.split(':')
 			
 			this.httpsTunnel = tunnel.httpsOverHttp({
@@ -61,7 +75,7 @@ module.exports = class SaKpiRepositoryClient {
 					// , proxyAuth: 'user:password'
 				}
 			});
-		}
+		}*/
 	}
 	
 	request(options){
@@ -70,15 +84,17 @@ module.exports = class SaKpiRepositoryClient {
 		if(!_.has(options, "baseURL"))
 			options.baseURL=this.baseURL
 		
-		if(!_.has(options, "httpsAgent"))
-			options.httpsAgent=this.httpsAgent
+		// if(!_.has(options, "httpsAgent"))
+			// options.httpsAgent=this.httpsAgent
 		
-		if(this.httpsTunnel){
+		/*if(this.httpsTunnel){
 			options.httpsAgent=this.httpsTunnel
-		}
+			// options.gzip=true
+		}*/
+		options.strictSSL = false
 		
-		if(!_.has(options, "rejectUnauthorized"))
-			options.rejectUnauthorized=false
+		// if(!_.has(options, "rejectUnauthorized"))
+			// options.rejectUnauthorized=false
 		
 		if(!_.has(options, "headers.Authorization") && this.kpiRepToken){
 			if(!_.has(options, "headers"))
@@ -115,8 +131,8 @@ module.exports = class SaKpiRepositoryClient {
 		  // baseURL: this.baseURL,
 		  url: '/api/token',
 		  // rejectUnauthorized: false,
-		  data: 
-		   { apiKey:this.apiKey }
+		  data: { apiKey:this.apiKey }
+		  , body: { apiKey:this.apiKey }
 		})
 		this.kpiRepToken=_.get(kpiRepLogin,"access_token")
 		debug(`kpiRepToken: ${this.kpiRepToken?this.kpiRepToken.substring(0,10):'-'}...`)
@@ -156,6 +172,7 @@ module.exports = class SaKpiRepositoryClient {
 			url: '/api/kpi-definition',
 			// headers: { 'Authorization': 'Bearer '+this.kpiRepToken },
 			data: kpiAttrs
+			, body: kpiAttrs
 		})
 	}
 	
@@ -207,6 +224,13 @@ module.exports = class SaKpiRepositoryClient {
 		if(!serviceUid)
 			return "cannot download KPIs because of invalid service parameter: "+serviceP
 		
+		const params={
+				serviceUids: [serviceUid]
+				, starttime
+				, endtime
+				, interval
+			}
+			
 		/** download action */
 		return await this.request({ 
 			method: 'get',
@@ -214,12 +238,8 @@ module.exports = class SaKpiRepositoryClient {
 			// baseURL: this.baseURL,
 			url: '/api/service/kpi/history-chart',
 			// headers: { 'Authorization': 'Bearer '+this.kpiRepToken },
-			params: {
-				serviceUids: [serviceUid]
-				, starttime
-				, endtime
-				, interval
-			}
+			params
+			, qs: params
 		})
 	}
 	
@@ -297,9 +317,8 @@ module.exports = class SaKpiRepositoryClient {
 					// baseURL: this.baseURL,
 					url: '/api/service/customkpi-collection',
 					// headers: { 'Authorization': 'Bearer '+this.kpiRepToken },
-					data: { 
-						kpis: customKpis
-					}
+					data: { kpis: customKpis }
+					, body: { kpis: customKpis }
 				})
 			)
 		}
@@ -311,9 +330,8 @@ module.exports = class SaKpiRepositoryClient {
 					// baseURL: this.baseURL,
 					url: '/api/service/kpi-collection',
 					// headers: { 'Authorization': 'Bearer '+this.kpiRepToken },
-					data: { 
-						payload: standardKpis
-					}
+					data: { payload: standardKpis }
+					, body: { payload: standardKpis }
 				})
 			)
 		}
