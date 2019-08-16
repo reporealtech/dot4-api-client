@@ -22,10 +22,12 @@ const requestQueue = new Queue(function (input, cb) {
 
 	new Promise((resolve, reject)=>{
 		rp(input, function (error, response, body) {
-			if(error)
+			if(error){
+				debug(body)
 				return reject(error)
-			if(response.statusCode!=200)
-				return reject(`status: ${response.status}`)
+			}
+			//if(response.statusCode!=200)
+				// return reject(`status: ${response.status}`)
 				
 			return resolve(body)
 		})
