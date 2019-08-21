@@ -48,21 +48,7 @@ const requestQueue = new Queue(function (input, cb) {
 		cb(null, response.data);
 	})
 	.catch(error=>{
-		if (error.response) {
-			cb(
-			  `${method} Request ${url} - Status Code: ${error.response.status} "${JSON.stringify(
-				error.response.data,
-				null,
-				2
-			  )}"`
-			);
-		} else if (error.request) {
-			cb(
-			  `${method} Request ${url} - TimeoutStatus Code: ${error.response.status} "${error.response.data}"`
-			);
-		} else {
-			cb(`${method} Request ${url} - Error: "${error.message}"`);
-		}
+		cb(`${method} Request ${url} - Error: "${JSON.stringify(error)}"`);
 	})
 
 }, { concurrent: 1 })
