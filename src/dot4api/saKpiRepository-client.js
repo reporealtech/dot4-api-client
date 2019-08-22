@@ -1,8 +1,8 @@
 'use strict';
 
-// let rp = require('request');
+let rp = require('request');
 const _ = require('lodash')
-, axios = require('axios')
+// , axios = require('axios')
 , https = require('https')
 , moment= require("moment")
 , Queue = require('better-queue')
@@ -13,17 +13,13 @@ const _ = require('lodash')
 ;
 
 const requestQueue = new Queue(function (input, cb) {
-	/* if(input.baseURL)
-		 input.baseUrl=input.baseURL //axios and rp compatibility
-	*/
-	
 	const {method, url, baseURL}=input
 	, completeUrl=baseURL+url
 	;
 	
 	debug(`SaKpiRepositoryClient.request("${method}","${url}",) ...`);
 
-/*	new Promise((resolve, reject)=>{
+	new Promise((resolve, reject)=>{
 		rp(input, function (error, response, body) {
 			if(error)
 				return reject(error)
@@ -33,8 +29,8 @@ const requestQueue = new Queue(function (input, cb) {
 				
 			return resolve(body)
 		})
-	}) */
-	axios(input)
+	}) 
+	// axios(input)
 	.then(response=>{
 		cb(null, response);
 	})
@@ -50,24 +46,23 @@ module.exports = class SaKpiRepositoryClient {
 		this.baseURL=_.get(config,'saKpiRepository.url')
 		this.apiKey=_.get(config,'saKpiRepository.apiKey')
 		
-		axios.defaults.httpsAgent = new https.Agent({  
+/*		axios.defaults.httpsAgent = new https.Agent({  
 			rejectUnauthorized: false
 		})
 		
 		axios.defaults.proxy=proxyConf.axios(config)
-		
-/*		rp = rp.defaults({
+		axios.defaults.baseURL=this.baseURL
+*/		
+		rp = rp.defaults({
 			json: true 
 			, strictSSL: false
 			, proxy: proxyConf.request(config)
-		}) */
+			, baseUrl: this.baseURL
+		}) 
 	}
 	
 	request(options){
 		debug(`request to url: ${options.url}`)
-		
-		if(!_.has(options, "baseURL"))
-			options.baseURL=this.baseURL
 		
 		if(!_.has(options, "headers.Authorization") && this.kpiRepToken){
 			if(!_.has(options, "headers"))
@@ -85,8 +80,8 @@ module.exports = class SaKpiRepositoryClient {
 				}
 				return reject(e)
 			  }
-			  // resolve(_.get(result,"data"))
-			  resolve(_.get(result,"data.data"))
+			  resolve(_.get(result,"data"))
+			  // resolve(_.get(result,"data.data"))
   		  });
 	    })
 	}
@@ -100,8 +95,8 @@ module.exports = class SaKpiRepositoryClient {
 		let kpiRepLogin=await this.request({ 
 		  method: 'post',
 		  url: '/api/token',
-		  // body: { apiKey:this.apiKey }
-		  data: { apiKey:this.apiKey }
+		  body: { apiKey:this.apiKey }
+		  // data: { apiKey:this.apiKey }
 		})
 		this.kpiRepToken=_.get(kpiRepLogin,"access_token")
 		debug(`kpiRepToken: ${this.kpiRepToken?this.kpiRepToken.substring(0,10):'-'}...`)
@@ -137,8 +132,8 @@ module.exports = class SaKpiRepositoryClient {
 		return await this.request({ 
 			method: 'post',
 			url: '/api/kpi-definition',
-			// body: kpiAttrs
-			data: kpiAttrs
+			body: kpiAttrs
+			// data: kpiAttrs
 		})
 	}
 	
@@ -192,8 +187,8 @@ module.exports = class SaKpiRepositoryClient {
 		return await this.request({ 
 			method: 'get',
 			url: '/api/service/kpi/history-chart',
-			// qs: params
-			params
+			qs: params
+			// params
 		})
 	}
 	
@@ -270,8 +265,8 @@ module.exports = class SaKpiRepositoryClient {
 			collectedPromises.push(this.request({ 
 					method: 'post',
 					url: '/api/service/customkpi-collection',
-					// body: { kpis: customKpis }
-					data: { kpis: customKpis }
+					body: { kpis: customKpis }
+					// data: { kpis: customKpis }
 				})
 			)
 		}
@@ -280,8 +275,8 @@ module.exports = class SaKpiRepositoryClient {
 			collectedPromises.push(this.request({ 
 					method: 'post',
 					url: '/api/service/kpi-collection',
-					// body: { payload: standardKpis }
-					data: { payload: standardKpis }
+					body: { payload: standardKpis }
+					// data: { payload: standardKpis }
 				})
 			)
 		}
