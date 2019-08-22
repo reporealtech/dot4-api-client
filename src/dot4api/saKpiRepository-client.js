@@ -1,14 +1,14 @@
 'use strict';
 
+let rp = require('request');
 const _ = require('lodash')
 , https = require('https')
 , moment= require("moment")
 , Queue = require('better-queue')
-, rp = require('request')
 , uuidv4 = require('uuid/v4')
-;
 
-const debug = require('../lib/debug');
+, debug = require('../lib/debug')
+;
 
 const requestQueue = new Queue(function (input, cb) {
 	if(input.baseURL)
@@ -22,10 +22,9 @@ const requestQueue = new Queue(function (input, cb) {
 
 	new Promise((resolve, reject)=>{
 		rp(input, function (error, response, body) {
-			if(error){
-				debug(body)
+			if(error)
 				return reject(error)
-			}
+			
 			//if(response.statusCode!=200)
 				// return reject(`status: ${response.status}`)
 				
@@ -44,8 +43,9 @@ const requestQueue = new Queue(function (input, cb) {
 
 module.exports = class SaKpiRepositoryClient {
 	constructor(config) {
-		this.baseURL=config.url
-		this.apiKey=config.apiKey
+		this.baseURL=_.get(config,'saKpiRepository.url')
+		this.apiKey=_.get(config,'saKpiRepository.apiKey')
+		this.proxy=config.proxy //{ url, username, password }
 	}
 	
 	request(options){
@@ -212,6 +212,7 @@ module.exports = class SaKpiRepositoryClient {
 		/**
 		 * remodelling of data: we need the data grouped per service
 		 */
+		debug(`wanna upload ${_.get(dataArray, "length")} rows`)
 		_.forEach(dataArray, dataRow=>{
 			let serviceUid=globalServiceUid
 			if(dataRow.service)
@@ -230,6 +231,7 @@ module.exports = class SaKpiRepositoryClient {
 			let targetUploadObject=standardKpis
 			, kpi=dataRow.kpi||globalKpi
 			;
+			//debug(`searching for kpi ${kpi}`)
 			if(_.some(this.allKpis, oneOfAllKpi=>oneOfAllKpi.name==kpi && !oneOfAllKpi.isSystem)){
 				targetUploadObject=customKpis
 			}
