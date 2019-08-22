@@ -12,7 +12,8 @@ const axios = require('axios')
 const querystring = require('querystring');
 const _ = require('lodash');
 
-const debug = require('../lib/debug');
+const debug = require('../lib/debug')
+, proxyConf = require('../lib/proxyConf');
 const ServiceManagementApi = require('./service-management');
 const ConfigurationManagementApi = require('./configuration-management');
 const IncidentManagementApi = require('./incident-management');
@@ -97,6 +98,7 @@ function createDot4Client(config) {
   }
 
   axios.defaults.baseURL = config.baseUrl;
+  axios.defaults.proxy=proxyConf.axios(config)
 
   const _config = config;
   var _token;
