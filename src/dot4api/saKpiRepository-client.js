@@ -55,6 +55,12 @@ module.exports = class SaKpiRepositoryClient {
 		})
 		
 		axios.defaults.proxy=proxyConf.axios(config)
+		
+/*		rp = rp.defaults({
+			json: true 
+			, strictSSL: false
+			, proxy: proxyConf.request(config)
+		}) */
 	}
 	
 	request(options){
@@ -63,12 +69,6 @@ module.exports = class SaKpiRepositoryClient {
 		if(!_.has(options, "baseURL"))
 			options.baseURL=this.baseURL
 		
-/*		options.strictSSL = false
-		if(!_.has(options, "headers")){
-			options.headers={'content-type': 'application/json'}
-			options.json=true 
-		} */
-			
 		if(!_.has(options, "headers.Authorization") && this.kpiRepToken){
 			if(!_.has(options, "headers"))
 				options.headers={}
