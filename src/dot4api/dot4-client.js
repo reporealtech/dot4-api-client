@@ -49,7 +49,7 @@ const requestQueue = new Queue(function (input, cb) {
 		cb(null, response.data);
 	})
 	.catch(error=>{
-		cb(`${method} Request ${url} - Error: "${JSON.stringify(error)}"`);
+		cb(`${method} request to ${url} failed. Error: "${error}"`); //JSON.stringify(): TypeError: Converting circular structure to JSON
 	})
 
 }, { concurrent: 1 })
