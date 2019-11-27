@@ -230,6 +230,15 @@ function createDot4Client(config) {
     return serviceManagementApi;
   };
   
+  dot4Client.createBaselineManagementApi = async function() {
+    debug(`${MODULE_NAME}.createBaselineManagementApi() ...`);
+    const baselineManagementApi = new BaselineManagementApi(this);
+    await dot4Client.setCiTypes(baselineManagementApi)
+
+    debug(`${MODULE_NAME}.createBaselineManagementApi() finished.`);
+    return baselineManagementApi;
+  };
+  
   dot4Client.createPermissionManagementApi = function() {
     debug(`${MODULE_NAME}.createPermissionManagementApi() ...`);
     const permissionManagementApi = new PermissionManagementApi(this);
