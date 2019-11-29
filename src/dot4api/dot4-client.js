@@ -123,7 +123,7 @@ function createDot4Client(config) {
   dot4Client.connect = async function() {
     const loginParams = {
       grant_type: 'password',
-      username: 'Dot4\\' + _config.tenant + '\\' + _config.user,
+      username: (_.get(_config,'module')||'Dot4')+'\\' + _config.tenant + '\\' + _config.user,
       password: _config.password
     };
 
