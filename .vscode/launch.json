@@ -9,6 +9,13 @@
       "request": "launch",
       "name": "Launch Program test.js",
       "program": "${workspaceFolder}\\test.js"
+    },
+
+    {
+      "type": "node",
+      "request": "launch",
+      "name": "Launch Program create-cis.js",
+      "program": "${workspaceFolder}/examples/create-cis.js"
     }
   ]
 }
