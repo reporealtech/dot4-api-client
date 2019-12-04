@@ -142,7 +142,7 @@ function createDot4Client(config) {
       } else if (error.request) {
         throw new Error(`Connect - TimeoutStatus Code: ${_.get(error,"response.status")} "${JSON.stringify(_.get(error,"response.data"))}"`);
       } else {
-        throw new Error(`Connect - Error: "${JSON.stringify(_.get(error,"message"))}"`);
+        throw new Error(`Connect - Error: "${JSON.stringify(error.message || error.stack || error)}"`);
       }
     } finally {
       debug(`createDot4Client() finished`);
