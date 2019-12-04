@@ -23,6 +23,16 @@ describe('Create DOT4 baseline Managment Api Client', async () => {
       'a63803ee-e994-42f7-b9d1-6b9f15f26540'
     ); // has Service CIType
   });
+  
+  it('baseline Management Api has baselines', async () => {
+	  const baselines=await baselineManagementApi.getBaselines()
+    expect(baselines).is.a('array');
+  });
+
+  it('baseline mismatches', async () => {
+	const baselines=await baselineManagementApi.getBaselines()
+    await baselineManagementApi.mismatchingBaselinesForCi(45866)
+  });
 
   after(async () => {
     dot4Client.disconnect();

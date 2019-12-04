@@ -1,10 +1,11 @@
 'use strict';
-const _ = require('lodash');
+const _ = require('lodash')
 
-const debug = require('../lib/debug');
-const BaseApi = require('./base-api');
+, debug = require('../lib/debug')
+, ConfigurationManagementApi = require('./configuration-management')
+;
 
-module.exports = class BaselineManagementApi extends BaseApi {
+module.exports = class BaselineManagementApi extends ConfigurationManagementApi {
   constructor(dot4Client) {
     super(dot4Client);
     this.name = 'BaselineManagementApi';
@@ -16,14 +17,56 @@ module.exports = class BaselineManagementApi extends BaseApi {
 		if(filter){
 			return _.filter(baselines,filter)
 		}
+		// debug(baselines)
 		return baselines
 	  } catch(e){
 		  debug(`error found in ${this.name}: `+JSON.stringify(e))
 	  }
   }
   
-  async mismatchingBaselinesForCi(id){
+  async execBaseline(baselineId, ciId){
+	  try {
+		const baselines=_.get(await this.safeDot4ClientRequest('get', `/api/Baseline/BaselineCIs/${baselineId}`),'items')
+		if(ciId){
+			return _.filter(baselines,{ciId})
+		}
+		// debug(baselines)
+		return baselines
+	  } catch(e){
+		  debug(`error found in ${this.name}: `+JSON.stringify(e))
+	  }
+  }
+  
+  async mismatchingBaselinesForCi(ci_or_ciid){
+	  try{
 	  if(!this.baselines)
 		  this.baselines=await this.getBaselines()
+
+	  let ci=ci_or_ciid
+	  if(typeof ci_or_ciid==='string' || typeof ci_or_ciid==='number'){
+		  ci=await this.getCi(ci_or_ciid)
+	  }
+	  
+	  // debug('############### CI ##############')
+	  // debug(ci)
+	  // let ciType=this.getCiTypeById(ci.
+	  for(let baseline of this.baselines){
+		  const ciType=this.getCiType(baseline.ciTypeUuid)
+		  , betroffeneIds=[ciType.id, ...ciType.parentIds]
+		  // debug(betroffeneIds)
+		  	// , ciType _.find(this.ciTypesTree, {id:ciTypeId})
+
+		  , isThisBaselineValid=betroffeneIds.indexOf(ci.ciTypeId)>=0
+		  ;
+		  debug(`isThisBaselineValid: ${isThisBaselineValid}`)
+		  
+		  if(isThisBaselineValid){
+			  
+		  }
+	  }
+	  
+	  } catch(e){
+		  debug(`error found in ${this.name}: `+JSON.stringify(e))
+	  }
   }
 }

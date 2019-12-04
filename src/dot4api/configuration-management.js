@@ -129,7 +129,7 @@ class ConfigurationManagementApi extends BaseApi {
       debug(`${this.name}.getCiTypeId() finished.`);
     }
   }
-
+  
   async getRelationTypes(reload = false) {
     try {
       debug(`${this.name}.getRelationTypes() ...`);

@@ -26,7 +26,7 @@ const dot4Client = createDot4Client(config);
 await dot4Client.connect();
 ```
 
-You use the required "createDot4Client" Factory dunction to create a dot4Client object. For the creation of the dot4Client is a config object needed. This config object includes:
+You use the required "createDot4Client" Factory function to create a dot4Client object. For the creation of the dot4Client is a config object needed. This config object includes:
 
 - user: the dot4 user (your email address)
 - password: the dot4 user passord

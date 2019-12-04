@@ -8,20 +8,22 @@
  */
 
 const axios = require('axios')
-, Queue = require('better-queue');
-const querystring = require('querystring');
-const _ = require('lodash');
+, Queue = require('better-queue')
+, querystring = require('querystring')
+, _ = require('lodash')
 
-const debug = require('../lib/debug')
-, proxyConf = require('../lib/proxyConf');
-const ServiceManagementApi = require('./service-management');
-const ConfigurationManagementApi = require('./configuration-management');
-const IncidentManagementApi = require('./incident-management');
-const PermissionManagementApi = require('./permission-management');
-const UserManagementApi = require('./user-management');
-const AdministrationApi = require('./administration');
-const SaKpiRepositoryClient = require("./saKpiRepository-client");
-const MODULE_NAME = 'createDot4Client';
+, debug = require('../lib/debug')
+, proxyConf = require('../lib/proxyConf')
+, ServiceManagementApi = require('./service-management')
+, ConfigurationManagementApi = require('./configuration-management')
+, IncidentManagementApi = require('./incident-management')
+, PermissionManagementApi = require('./permission-management')
+, UserManagementApi = require('./user-management')
+, AdministrationApi = require('./administration')
+, SaKpiRepositoryClient = require("./saKpiRepository-client")
+, BaselineManagementApi= require("./baseline-management")
+, MODULE_NAME = 'createDot4Client'
+;
 
 async function reconnect(that) {
   debug('reconnect');
@@ -166,7 +168,7 @@ function createDot4Client(config) {
   dot4Client.request = function(method, url, data) {
 	  const that=this
 	  return new Promise((resolve, reject)=>{
-		  requestQueue.push({method, url, data, _token=that._token}, function (err, result) {
+		  requestQueue.push({method, url, data, _token: that._token}, function (err, result) {
 			  if(err)
 				  return reject(err)
 			  resolve(result)
