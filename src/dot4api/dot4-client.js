@@ -166,7 +166,7 @@ function createDot4Client(config) {
   dot4Client.request = function(method, url, data) {
 	  const that=this
 	  return new Promise((resolve, reject)=>{
-		  requestQueue.push({method, url, data, that._token}, function (err, result) {
+		  requestQueue.push({method, url, data, _token=that._token}, function (err, result) {
 			  if(err)
 				  return reject(err)
 			  resolve(result)

@@ -22,7 +22,8 @@ module.exports = class BaselineManagementApi extends BaseApi {
 	  }
   }
   
-  async mismatchingBaselinesForCi(name){
-	  
+  async mismatchingBaselinesForCi(id){
+	  if(!this.baselines)
+		  this.baselines=await this.getBaselines()
   }
 }
