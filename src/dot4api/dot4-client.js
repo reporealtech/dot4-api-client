@@ -101,7 +101,7 @@ function createDot4Client(config) {
   axios.defaults.proxy=proxyConf.axios(config)
 
   const _config = config;
-  var _token;
+  // var _token;
   var _loginTimeout;
 
   let dot4Client = { 
@@ -130,9 +130,9 @@ function createDot4Client(config) {
     try {
       // const response = await axios.post('/token', querystring.stringify(loginParams));
       // _token = response.data;
-	  _token = await this.postRequest('/token', querystring.stringify(loginParams));
+	  this._token = await this.postRequest('/token', querystring.stringify(loginParams));
       
-      axios.defaults.headers.common['Authorization'] = 'Bearer ' + _token.access_token;
+      // axios.defaults.headers.common['Authorization'] = 'Bearer ' + _token.access_token;
       this.isConnected = true;
 
       _loginTimeout = setTimeout(reconnect, _config.reloginTimeout, this);
@@ -151,8 +151,8 @@ function createDot4Client(config) {
 
   dot4Client.disconnect = function() {
     debug(`${MODULE_NAME}.disconnect() ...`);
-    axios.defaults.headers.common['Authorization'] = '';
-    _token = undefined;
+    // axios.defaults.headers.common['Authorization'] = '';
+    this._token = undefined;
     this.isConnected = false;
 
     if (_loginTimeout !== undefined) {
@@ -164,8 +164,9 @@ function createDot4Client(config) {
   };
 
   dot4Client.request = function(method, url, data) {
+	  const that=this
 	  return new Promise((resolve, reject)=>{
-		  requestQueue.push({method, url, data, _token}, function (err, result) {
+		  requestQueue.push({method, url, data, that._token}, function (err, result) {
 			  if(err)
 				  return reject(err)
 			  resolve(result)

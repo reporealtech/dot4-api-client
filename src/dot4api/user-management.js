@@ -122,6 +122,11 @@ module.exports = class UserManagementApi extends ConfigurationManagementApi {
 	  debug(`assignRolesforUser(${userid})`)
 	  await this.safeDot4ClientRequest('put', `/api/users/${userid}/roles`, roles)
   }
+  
+  async loadRolesforUser(userid) {
+	  debug(`loadRolesforUser(${userid})`)
+	  return await this.safeDot4ClientRequest('get', `/api/users/${userid}/roles`)
+  }
 
   async loadAllUsers(){
 	  debug("loadAllUsers()")
