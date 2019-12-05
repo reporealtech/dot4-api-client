@@ -39,7 +39,11 @@ module.exports = class BaselineManagementApi extends ConfigurationManagementApi 
 	  }
   }
   
-  async execAllBaselinesForCi(ci_or_ciid){
+  /**
+   * @param ci_or_ciid
+   * @param [baselineId]
+   */
+  async execBaselinesForCi(ci_or_ciid, baselineId){
 	  try{
 		  if(!this.baselines)
 			  this.baselines=await this.getBaselines()
@@ -54,6 +58,10 @@ module.exports = class BaselineManagementApi extends ConfigurationManagementApi 
 		  // debug(ci)
 		  // let ciType=this.getCiTypeById(ci.
 		  for(let baseline of this.baselines){
+			  if(baselineId && baseline.id!=baselineId) {
+				  continue;
+			  }
+			  
 			  const ciType=this.getCiType(baseline.ciTypeUuid)
 			  , betroffeneIds=[ciType.id, ...ciType.parentIds]
 			  // debug(betroffeneIds)
