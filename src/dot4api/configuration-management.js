@@ -266,7 +266,7 @@ class ConfigurationManagementApi extends BaseApi {
   async getCi(id) {
     debug(`${this.name}.getCi(${id}) ...`);
 
-    if (_.isNaN(id)) {
+    if (typeof id === 'string' && !/^\d+$/.test(id)) {
       throw new Error(`id of getCi is not a number [${id}]`);
     }
 
