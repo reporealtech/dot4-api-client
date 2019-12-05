@@ -280,6 +280,21 @@ class ConfigurationManagementApi extends BaseApi {
       debug(`${this.name}.getCi(${id}) finished.`);
     }
   }
+  
+  async searchCis(searchterm){
+	//https://vnext-api.realtech.com/api/CISearch/SearchCIs?$top=50&$skip=0&$filter=name%20eq%20%27Bernd%20Ludwig%27
+	debug(`${this.name}.searchCis("${searchterm}") ...`);
+
+    const url = 'api/CISearch/SearchCIs?$filter='+querystring.escape(`name eq '${searchterm}'`);
+
+    try {
+      return await this.dot4Client.getRequest(url);
+    } catch (error) {
+      return error;
+    } finally {
+      debug(`${this.name}.searchCis("${searchterm}") finished.`);
+    }
+  }
 
   /**
    * @param ci
@@ -444,7 +459,11 @@ class ConfigurationManagementApi extends BaseApi {
 	  , skip=0
 	  ;
 	  
-	  while(cis.length<pCount){
+	  for (let cnt of [...Array(10).keys()]) { 
+		  if(cis.length>=pCount){
+			break;
+		  }
+		  
 		  let url='/api/cis'
 		  ;
 		  

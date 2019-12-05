@@ -30,8 +30,7 @@ describe('Create DOT4 baseline Managment Api Client', async () => {
   });
 
   it('baseline mismatches', async () => {
-	const baselines=await baselineManagementApi.getBaselines()
-    await baselineManagementApi.mismatchingBaselinesForCi(45866)
+    const blRes=await baselineManagementApi.execAllBaselinesForCi(45866)
   });
 
   after(async () => {
