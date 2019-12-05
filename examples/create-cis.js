@@ -1,3 +1,10 @@
+/**
+ * @copyright Copyright (C) REALTECH AG, Germany - All Rights Reserved
+ *  Unauthorized copying of this file, via any medium is strictly prohibited
+ *  Proprietary and confidential
+ *  Written by Tobias Ceska <tobias.ceska@realtech.com>, December 2019
+ */
+
 'use strict';
 
 const unknownHardwareGuid = '101FCFEE-446B-4EB1-94C2-8D2DED28E0B6';
