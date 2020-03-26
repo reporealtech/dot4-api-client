@@ -7,9 +7,8 @@
 
 'use strict';
 
-const _ = require('lodash')
-, querystring = require("querystring")
-;
+const _ = require('lodash'),
+  querystring = require('querystring');
 
 const debug = require('../lib/debug');
 const BaseApi = require('./base-api');
@@ -19,7 +18,7 @@ function _flattenCiTypeTree(data, citypes) {
     citypes = {};
   }
 
-  data.forEach(e => {
+  data.forEach((e) => {
     //    if (!e.isCategory) {
     citypes[_.toLower(e.uuid)] = {
       id: e.id,
@@ -27,7 +26,7 @@ function _flattenCiTypeTree(data, citypes) {
       name: e.name,
       path: e.path,
       isCategory: e.isCategory,
-      parentIds: e.parentIds
+      parentIds: e.parentIds,
     };
     //    }
 
@@ -86,11 +85,11 @@ class ConfigurationManagementApi extends BaseApi {
       debug(`${this.name}.getCis(${query}) ...`);
       // let url = `api/CIs?$filter=${query}`;
       // return await this.dot4Client.getRequest(url);
-	  let cis=await this.loadAllCisForFilter(query)
-	  return {
-		  items: cis
-		  , count: _.get(cis,'length')||0
-	  }
+      let cis = await this.loadAllCisForFilter(query);
+      return {
+        items: cis,
+        count: _.get(cis, 'length') || 0,
+      };
     } catch (error) {
       throw error;
     } finally {
@@ -136,7 +135,7 @@ class ConfigurationManagementApi extends BaseApi {
       debug(`${this.name}.getCiTypeId() finished.`);
     }
   }
-  
+
   async getRelationTypes(reload = false) {
     try {
       debug(`${this.name}.getRelationTypes() ...`);
@@ -162,7 +161,9 @@ class ConfigurationManagementApi extends BaseApi {
 
       const ciRelationTypes = await this.getRelationTypes();
 
-      const relationType = _.find(ciRelationTypes, { uuid });
+      const relationType = _.find(ciRelationTypes, {
+        uuid,
+      });
       if (_.isUndefined(relationType)) {
         throw new Error(`CI Relation Type with uuid='${uuid}' not found!`);
       }
@@ -199,14 +200,16 @@ class ConfigurationManagementApi extends BaseApi {
 
       const lifecyles = await this.getLifeCycles();
 
-      const indexLifecycle = _.findIndex(lifecyles, { uuid: lifecycleUuid });
+      const indexLifecycle = _.findIndex(lifecyles, {
+        uuid: lifecycleUuid,
+      });
       if (indexLifecycle === -1) {
         throw new Error(`Lifecycle not found with uuid='${lifecycleUuid}'`);
       }
       const lifecycle = lifecyles[indexLifecycle];
 
       const indexPhase = _.findIndex(lifecycle.lifecyclePhases, {
-        uuid: phaseUuid
+        uuid: phaseUuid,
       });
       if (indexPhase === -1) {
         throw new Error(`Lifecycle Phase not found with uuid='${phaseUuid}'`);
@@ -214,7 +217,7 @@ class ConfigurationManagementApi extends BaseApi {
       const phase = lifecycle.lifecyclePhases[indexPhase];
 
       const indexStatus = _.findIndex(phase.lifecycleStatus, {
-        uuid: statusUuid
+        uuid: statusUuid,
       });
       if (indexStatus === -1) {
         throw new Error(`Lifecycle Status not found with uuid='${statusUuid}'`);
@@ -225,7 +228,7 @@ class ConfigurationManagementApi extends BaseApi {
       return {
         lifecycleId: lifecycle.id,
         lifecyclePhaseId: phase.id,
-        lifecycleStatusId: status.id
+        lifecycleStatusId: status.id,
       };
     } catch (error) {
       throw error;
@@ -287,12 +290,14 @@ class ConfigurationManagementApi extends BaseApi {
       debug(`${this.name}.getCi(${id}) finished.`);
     }
   }
-  
-  async searchCis(searchterm){
-	//https://vnext-api.realtech.com/api/CISearch/SearchCIs?$top=50&$skip=0&$filter=name%20eq%20%27Bernd%20Ludwig%27
-	debug(`${this.name}.searchCis("${searchterm}") ...`);
 
-    const url = 'api/CISearch/SearchCIs?$filter='+querystring.escape(`name eq '${searchterm}'`);
+  async searchCis(searchterm) {
+    //https://vnext-api.realtech.com/api/CISearch/SearchCIs?$top=50&$skip=0&$filter=name%20eq%20%27Bernd%20Ludwig%27
+    debug(`${this.name}.searchCis("${searchterm}") ...`);
+
+    const url =
+      'api/CISearch/SearchCIs?$filter=' +
+      querystring.escape(`name eq '${searchterm}'`);
 
     try {
       return await this.dot4Client.getRequest(url);
@@ -309,7 +314,9 @@ class ConfigurationManagementApi extends BaseApi {
    */
   async createCi(ci, ciTypeUuid) {
     try {
-      debug(`${this.name}.createCi('${JSON.stringify(ci)}', '${ciTypeUuid}') ...`);
+      debug(
+        `${this.name}.createCi('${JSON.stringify(ci)}', '${ciTypeUuid}') ...`,
+      );
       const url = `api/cis`;
 
       if (_.isNil(ci)) {
@@ -321,15 +328,18 @@ class ConfigurationManagementApi extends BaseApi {
       }
 
       if (isNaN(ci.ciTypeId) || ci.ciTypeId < 0) {
-        throw new Error(`ciTypeId of ci is not a valid number [${ci.ciTypeId}]`);
+        throw new Error(
+          `ciTypeId of ci is not a valid number [${ci.ciTypeId}]`,
+        );
       }
 
       if (!ci.name) {
         throw new Error(`name of ci is not set [${ci.name}]`);
       }
 
-	  if(!ci.$type)
-		ci.$type = 'Common.DomainModels.ConfigurationMgmt.CI, Realtech.Common.DomainModels';
+      if (!ci.$type)
+        ci.$type =
+          'Common.DomainModels.ConfigurationMgmt.CI, Realtech.Common.DomainModels';
 
       const createdCi = await this.dot4Client.postRequest(url, ci);
 
@@ -342,32 +352,30 @@ class ConfigurationManagementApi extends BaseApi {
   }
 
   async updateCi(ci) {
-	  
-      debug(`${this.name}.updateCi({name: ${ci.name}, id: ${ci.id}) ...`);
+    debug(`${this.name}.updateCi({name: ${ci.name}, id: ${ci.id}) ...`);
 
-      if (_.isNil(ci)) {
-        throw new Error('ci object not set');
-      }
+    if (_.isNil(ci)) {
+      throw new Error('ci object not set');
+    }
 
-      let id = ci.id;
-      if (_.isNaN(id) || id < 0) {
-        throw new Error(`id of ci is not a valid number [${id}]`);
-      }
-      const url = `api/cis?id=${id}`;
+    let id = ci.id;
+    if (_.isNaN(id) || id < 0) {
+      throw new Error(`id of ci is not a valid number [${id}]`);
+    }
+    const url = `api/cis?id=${id}`;
 
-      if (_.isNaN(ci.ciTypeId) || ci.ciTypeId < 0) {
-        throw new Error(`ciTypeId of ci is not a valid number [${ci.ciTypeId}]`);
-      }
+    if (_.isNaN(ci.ciTypeId) || ci.ciTypeId < 0) {
+      throw new Error(`ciTypeId of ci is not a valid number [${ci.ciTypeId}]`);
+    }
 
-      if (_.isEmpty(ci.name)) {
-        throw new Error(`name of ci is not set [${ci.name}]`);
-      }
+    if (_.isEmpty(ci.name)) {
+      throw new Error(`name of ci is not set [${ci.name}]`);
+    }
 
-	  // debug("make putRequest");
-      return await this.dot4Client.putRequest(url, ci);
-    
+    // debug("make putRequest");
+    return await this.dot4Client.putRequest(url, ci);
   }
-  
+
   async deleteCi(ci) {
     try {
       debug(`${this.name}.deleteCi(${JSON.stringify(ci)}) ...`);
@@ -384,21 +392,19 @@ class ConfigurationManagementApi extends BaseApi {
       const url = `api/cis?ids=[${id}]`;
 
       // await this.dot4Client.deleteRequest(url, {ids: [id]} ); //, ci
-      await this.dot4Client.deleteRequest(url ); //, ci
-
+      await this.dot4Client.deleteRequest(url); //, ci
     } catch (error) {
       return error;
     } finally {
       debug(`${this.name}.deleteCi(...) finished.`);
     }
   }
-  
+
   async getRelationsForCI(ci_id, filter) {
     debug(`${this.name}.getRelation(${filter}) ...`);
 
     let url = `api/CIRelations/forCI/${ci_id}`;
-	if(filter)
-		url+=`?$filter=${filter}`
+    if (filter) url += `?$filter=${filter}`;
 
     try {
       return await this.dot4Client.getRequest(url);
@@ -411,7 +417,9 @@ class ConfigurationManagementApi extends BaseApi {
 
   async createRelation(sourceCIId, destinationCIIds, relationTypeUuid) {
     try {
-      debug(`${this.name}.createRelation('${sourceCIId}, ${destinationCIIds}, ${relationTypeUuid}') ...`);
+      debug(
+        `${this.name}.createRelation('${sourceCIId}, ${destinationCIIds}, ${relationTypeUuid}') ...`,
+      );
 
       let relationTypeId = 0;
 
@@ -422,7 +430,9 @@ class ConfigurationManagementApi extends BaseApi {
       const url = `api/CIRelations/forCI/create/${sourceCIId}`;
 
       if (!_.isArray(destinationCIIds)) {
-        throw new Error(`destinationCIIds is not aan array ${destinationCIIds}`);
+        throw new Error(
+          `destinationCIIds is not aan array ${destinationCIIds}`,
+        );
       }
 
       if (_.isUndefined(relationTypeUuid)) {
@@ -432,23 +442,29 @@ class ConfigurationManagementApi extends BaseApi {
       relationTypeId = await this.getRelationTypeId(relationTypeUuid);
 
       if (isNaN(relationTypeId) || relationTypeId < 0) {
-        throw new Error(`relationTypeId is not a valid number [${relationTypeId}]`);
+        throw new Error(
+          `relationTypeId is not a valid number [${relationTypeId}]`,
+        );
       }
 
       const ciRelations = [];
-      _.forEach(destinationCIIds, destinationCIId => {
+      _.forEach(destinationCIIds, (destinationCIId) => {
         const ciRelation = {
-          $type: 'Common.DomainModels.ConfigurationMgmt.CIRelation, Realtech.Common.DomainModels',
+          $type:
+            'Common.DomainModels.ConfigurationMgmt.CIRelation, Realtech.Common.DomainModels',
           id: 0,
           relationTypeId,
           sourceCIId,
-          destinationCIId
+          destinationCIId,
         };
 
         ciRelations.push(ciRelation);
       });
 
-      const createdCiRelation = await this.dot4Client.postRequest(url, ciRelations);
+      const createdCiRelation = await this.dot4Client.postRequest(
+        url,
+        ciRelations,
+      );
 
       return createdCiRelation;
     } catch (error) {
@@ -457,127 +473,154 @@ class ConfigurationManagementApi extends BaseApi {
       debug(`${this.name}.createRelation(...) finished.`);
     }
   }
-  
-    async loadAllCisForFilter(serverFilter, clientFilter) {
-		debug(`loadAllCisForFilter()`)
-	  let cis=[]
-	  , numToLoadPerReq=200
-	  , pCount=1
-	  , skip=0
-	  ;
-	  
-	  for (let cnt of [...Array(10).keys()]) { 
-		  if(cis.length>=pCount){
-			break;
-		  }
-		  
-		  let url='/api/cis'
-		  ;
-		  
-		  if(serverFilter){
-			 /* if(serverFilter.match(/^ciTypeId eq (\d+)/))
+
+  async loadAllCisForFilter(serverFilter, clientFilter) {
+    debug(`loadAllCisForFilter()`);
+    let cis = [],
+      numToLoadPerReq = 200,
+      pCount = 1,
+      skip = 0;
+
+    for (let cnt of [...Array(10).keys()]) {
+      if (cis.length >= pCount) {
+        break;
+      }
+
+      let url = '/api/cis';
+
+      if (serverFilter) {
+        /* if(serverFilter.match(/^ciTypeId eq (\d+)/))
 				  url+="/byCiType/"+RegExp.$1+"?"; //TODO: $top und $skip funktionieren nicht und beschraenkt
 			  else
 				  url+='?$filter='+querystring.escape(serverFilter);
 			  url+='&'*/
 
-			  url+='?$filter='+querystring.escape(serverFilter)+'&'
-		  } else
-			  url+='?'
-		  
-		  url+=`$top=${numToLoadPerReq}&$skip=${numToLoadPerReq*skip}`;//TODO: all Attrs needed!
-			
-		  const newP=await this.safeDot4ClientRequest('get', url)
-		  cis.push(...newP.items)
-		  pCount=newP.count
-		  debug(`loadAllCisForFilter(): must load ${pCount} CIs with serverFilter ${JSON.stringify(serverFilter)}, clientFilter ${JSON.stringify(clientFilter)}. `)
-		  // debug(`first item: ${JSON.stringify(_.first(newP.items))}`)
-		  skip++
-	  }
-	  if(clientFilter)
-		cis=_.filter(cis,clientFilter)
-	
-	  return cis
-  }
-  
-  async createOrActivateCiAttributeTypeIfNeeded(ciTypeAlias, newTypeName){
-	const ciTypeList=await this.getCiTypeList()
-	, ciType_PERS_id=_.get(_.find(ciTypeList, {"alias": ciTypeAlias}),'id')
-	, existingCiAttributeTypesForPersons=await this.getCiAttributeTypes(ciType_PERS_id)
-	;
-	let ciType_externalUserID=_.find(existingCiAttributeTypesForPersons, {"name": newTypeName })
-	;
-	
-	if(!ciType_externalUserID) {
-		debug("#creating attribute "+newTypeName)
-		ciType_externalUserID=await this.createCiAttributeType({ciTypeId: ciType_PERS_id, name: newTypeName, isUnique: true})
-		// ciType_externalUserID.justCreated=true
-	} else if(!ciType_externalUserID.isActive) {
-		debug("#updating attribute "+newTypeName)
-		ciType_externalUserID.isActive=true
-		ciType_externalUserID=await this.updateCiAttributeType(ciType_externalUserID)
-	} else {
-		// debug('#'+JSON.stringify(ciType_externalUserID))
-	}
-	// debug(JSON.stringify(ciType_externalUserID))
-	return ciType_externalUserID
+        url += '?$filter=' + querystring.escape(serverFilter) + '&';
+      } else url += '?';
+
+      url += `$top=${numToLoadPerReq}&$skip=${numToLoadPerReq * skip}`; //TODO: all Attrs needed!
+
+      const newP = await this.safeDot4ClientRequest('get', url);
+      cis.push(...newP.items);
+      pCount = newP.count;
+      debug(
+        `loadAllCisForFilter(): must load ${pCount} CIs with serverFilter ${JSON.stringify(
+          serverFilter,
+        )}, clientFilter ${JSON.stringify(clientFilter)}. `,
+      );
+      // debug(`first item: ${JSON.stringify(_.first(newP.items))}`)
+      skip++;
+    }
+    if (clientFilter) cis = _.filter(cis, clientFilter);
+
+    return cis;
   }
 
-  async getCiAttributeTypes(ciId){
-	  return await this.safeDot4ClientRequest('get', `api/CIAttributeTypes?ciTypeId=${ciId}&slim=false&onlyActive=false`)
+  async createOrActivateCiAttributeTypeIfNeeded(ciTypeAlias, newTypeName) {
+    const ciTypeList = await this.getCiTypeList(),
+      ciType_PERS_id = _.get(
+        _.find(ciTypeList, {
+          alias: ciTypeAlias,
+        }),
+        'id',
+      ),
+      existingCiAttributeTypesForPersons = await this.getCiAttributeTypes(
+        ciType_PERS_id,
+      );
+    let ciType_externalUserID = _.find(existingCiAttributeTypesForPersons, {
+      name: newTypeName,
+    });
+
+    if (!ciType_externalUserID) {
+      debug('#creating attribute ' + newTypeName);
+      ciType_externalUserID = await this.createCiAttributeType({
+        ciTypeId: ciType_PERS_id,
+        name: newTypeName,
+        isUnique: true,
+      });
+      // ciType_externalUserID.justCreated=true
+    } else if (!ciType_externalUserID.isActive) {
+      debug('#updating attribute ' + newTypeName);
+      ciType_externalUserID.isActive = true;
+      ciType_externalUserID = await this.updateCiAttributeType(
+        ciType_externalUserID,
+      );
+    } else {
+      // debug('#'+JSON.stringify(ciType_externalUserID))
+    }
+    // debug(JSON.stringify(ciType_externalUserID))
+    return ciType_externalUserID;
   }
-  
-  setAttrIfNotSet(props, name, val){
-	  if(!props[name])
-		  props[name]=val
+
+  async getCiAttributeTypes(ciId) {
+    return await this.safeDot4ClientRequest(
+      'get',
+      `api/CIAttributeTypes?ciTypeId=${ciId}&slim=false&onlyActive=false`,
+    );
   }
-  
-  async createCiAttributeType(attrs){
-	  if(!_.has(attrs, 'ciTypeId') || !_.has(attrs, 'name')) {
-		  debug("createCiAttributeType: missing params")
-	  }
-	  
-	  attrs.id = 0
-	  
-	  this.setAttrIfNotSet(attrs, 'accessMode', 1)
-	  this.setAttrIfNotSet(attrs, 'allowMultiple', false)
-	  this.setAttrIfNotSet(attrs, 'description', attrs.name)
-	  this.setAttrIfNotSet(attrs, 'groupId', 1)
-	  this.setAttrIfNotSet(attrs, 'inInfoDialog', false)
-	  this.setAttrIfNotSet(attrs, 'isActive', true)
-	  this.setAttrIfNotSet(attrs, 'isMandatory', false)
-	  this.setAttrIfNotSet(attrs, 'isUnique', false)
-	  this.setAttrIfNotSet(attrs, 'parentId', null)
-	  this.setAttrIfNotSet(attrs, 'showInList', true)
-	  this.setAttrIfNotSet(attrs, 'versionControlMode', 0)
-	  this.setAttrIfNotSet(attrs, "dataType",  {
-			backgroundColor: "#FFFFFF"
-			, category: 1
-			, dataTypeLength: 100
-			, foregroundColor: "#000000"
-			, formFieldType: 1
-			, maxCount: 0
-			, maxSize: 0
-			, objectType: 1
-			, referencedCIAttributeTypes: []
-			, typeName: "CIAttributeDataType"
-			, unitCategoryId: 1
-			, unitId: 1
-		})
-	  
-		debug(`createCiAttributeType(${JSON.stringify(attrs)})`)  
-	  return await this.safeDot4ClientRequest('post', `api/CIAttributeTypes`, attrs)
+
+  setAttrIfNotSet(props, name, val) {
+    if (!props[name]) props[name] = val;
   }
-  
-  async updateCiAttributeType(attrs){
-	  if(!_.has(attrs, 'id') || !_.has(attrs, 'ciTypeId') || !_.has(attrs, 'name')) {
-		  debug("updateCiAttributeType: missing params")
-	  }
-	  
-	  const id=attrs.id
-	  delete attrs.id
-	  
-	  return await this.safeDot4ClientRequest('put', `api/CIAttributeTypes/${id}`, attrs)
+
+  async createCiAttributeType(attrs) {
+    if (!_.has(attrs, 'ciTypeId') || !_.has(attrs, 'name')) {
+      debug('createCiAttributeType: missing params');
+    }
+
+    attrs.id = 0;
+
+    this.setAttrIfNotSet(attrs, 'accessMode', 1);
+    this.setAttrIfNotSet(attrs, 'allowMultiple', false);
+    this.setAttrIfNotSet(attrs, 'description', attrs.name);
+    this.setAttrIfNotSet(attrs, 'groupId', 1);
+    this.setAttrIfNotSet(attrs, 'inInfoDialog', false);
+    this.setAttrIfNotSet(attrs, 'isActive', true);
+    this.setAttrIfNotSet(attrs, 'isMandatory', false);
+    this.setAttrIfNotSet(attrs, 'isUnique', false);
+    this.setAttrIfNotSet(attrs, 'parentId', null);
+    this.setAttrIfNotSet(attrs, 'showInList', true);
+    this.setAttrIfNotSet(attrs, 'versionControlMode', 0);
+    this.setAttrIfNotSet(attrs, 'dataType', {
+      backgroundColor: '#FFFFFF',
+      category: 1,
+      dataTypeLength: 100,
+      foregroundColor: '#000000',
+      formFieldType: 1,
+      maxCount: 0,
+      maxSize: 0,
+      objectType: 1,
+      referencedCIAttributeTypes: [],
+      typeName: 'CIAttributeDataType',
+      unitCategoryId: 1,
+      unitId: 1,
+    });
+
+    debug(`createCiAttributeType(${JSON.stringify(attrs)})`);
+    return await this.safeDot4ClientRequest(
+      'post',
+      `api/CIAttributeTypes`,
+      attrs,
+    );
+  }
+
+  async updateCiAttributeType(attrs) {
+    if (
+      !_.has(attrs, 'id') ||
+      !_.has(attrs, 'ciTypeId') ||
+      !_.has(attrs, 'name')
+    ) {
+      debug('updateCiAttributeType: missing params');
+    }
+
+    const id = attrs.id;
+    delete attrs.id;
+
+    return await this.safeDot4ClientRequest(
+      'put',
+      `api/CIAttributeTypes/${id}`,
+      attrs,
+    );
   }
 }
 
