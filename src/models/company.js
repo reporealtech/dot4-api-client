@@ -7,13 +7,14 @@
 
 'use strict';
 
-const CI = require("./ci")
-;
+const CI = require("./ci");
 
 class Company extends CI {
-	
-	static getCiTypeAlias() { return 'COMP' }
-	
+
+  static getCiTypeAlias() {
+    return 'COMP'
+  }
+
 }
 
 module.exports = Company;

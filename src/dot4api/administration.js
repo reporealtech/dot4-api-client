@@ -36,7 +36,9 @@ class AdministrationApi extends ConfigurationManagementApi {
       debug(`${this.name}.getRoles() ...`);
 
       if (!_.isInteger(roleId)) {
-        throw new Error(`${this.name}.roleId("${roleId}"): Role id is missing.`);
+        throw new Error(
+          `${this.name}.roleId("${roleId}"): Role id is missing.`,
+        );
       }
 
       const role = this.dot4Client.getRequest(`/api/roles/${roleId}`);
@@ -52,7 +54,9 @@ class AdministrationApi extends ConfigurationManagementApi {
     try {
       debug(`${this.name}.getDefaultPrivileges() ...`);
 
-      const defaultPrivileges = this.dot4Client.getRequest(`api/Roles/DefaultPrivileges`);
+      const defaultPrivileges = this.dot4Client.getRequest(
+        `api/Roles/DefaultPrivileges`,
+      );
       return defaultPrivileges;
     } catch (error) {
       throw error;
