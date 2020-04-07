@@ -299,7 +299,7 @@ class ConfigurationManagementApi extends BaseApi {
     const url = `api/CISearch/SearchCIs/${fuzziness}?$top=${top}&$skip=${skip}&$filter=name%20eq%20%27`+querystring.escape(searchterm)+'%27';
 
     try {
-      return await this.dot4Client.putRequest(url);
+      return await this.dot4Client.putRequest(url, ciTypeIds);
     } catch (error) {
       return error;
     } finally {
