@@ -10,8 +10,6 @@
 const _ = require('lodash')
 , querystring = require("querystring")
 ;
-const _ = require('lodash'),
-  querystring = require('querystring');
 
 const debug = require('../lib/debug');
 const BaseApi = require('./base-api');
