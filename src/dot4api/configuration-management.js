@@ -298,10 +298,6 @@ class ConfigurationManagementApi extends BaseApi {
 
     const url = `api/CISearch/SearchCIs/${fuzziness}?$top=${top}&$skip=${skip}&$filter=`+querystring.escape(`name eq '${searchterm}'`);
 
-    const url =
-      'api/CISearch/SearchCIs?$filter=' +
-      querystring.escape(`name eq '${searchterm}'`);
-
     try {
       return await this.dot4Client.putRequest(url);
     } catch (error) {
