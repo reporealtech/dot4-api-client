@@ -296,7 +296,7 @@ class ConfigurationManagementApi extends BaseApi {
 	//https://vnext-api.realtech.com/api/CISearch/SearchCIs?$top=50&$skip=0&$filter=name%20eq%20%27Bernd%20Ludwig%27
 	debug(`${this.name}.searchCis("${searchterm}") ...`);
 
-    const url = `api/CISearch/SearchCIs/${fuzziness}?$top=${top}&$skip=${skip}&$filter=`+querystring.escape(`name eq '${searchterm}'`);
+    const url = `api/CISearch/SearchCIs/${fuzziness}?$top=${top}&$skip=${skip}&$filter=name%20eq%20%27`+querystring.escape(searchterm)+'%27';
 
     try {
       return await this.dot4Client.putRequest(url);
