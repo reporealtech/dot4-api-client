@@ -112,7 +112,8 @@ function createDot4Client(config) {
     !_.isInteger(config.reloginTimeout) ||
     config.reloginTimeout < 120 * 1000
   ) {
-    config.reloginTimeout = 1000 * 60 * 60 * 8; // 8h;
+    // config.reloginTimeout = 1000 * 60 * 60 * 8; // 8h;
+    config.reloginTimeout = 1000 * 60 * 50; // 50min;
   }
 
   axios.defaults.baseURL = config.baseUrl;
