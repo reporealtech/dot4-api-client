@@ -46,10 +46,15 @@ const requestQueue = new Queue(
     } = input;
     debug(`${MODULE_NAME}.request("${method}","${url}",) ...`);
 
-    const headers = {
-      'content-type': 'application/json',
-      Authorization: 'Bearer ' + _.get(_token, 'access_token'),
-    };
+    const headers = {}
+    if(_.get(_token, 'access_token')){
+        headers['content-type'] = 'application/json'
+        headers['Authorization']= 'Bearer ' + _.get(_token, 'access_token')
+    } else if(/token/i.test(url)) {
+        headers['Content-Type'] = 'application/x-www-form-urlencoded'
+    } else {
+        debug(`${MODULE_NAME}.request("${method}","${url}",): which Content-Type should I request?`);
+    }
 
     axios({
         method,
