@@ -156,14 +156,11 @@ function createDot4Client(config) {
     };
 
     try {
-      // const response = await axios.post('/token', querystring.stringify(loginParams));
-      // _token = response.data;
       this._token = await this.postRequest(
         '/token',
         querystring.stringify(loginParams),
       );
 
-      // axios.defaults.headers.common['Authorization'] = 'Bearer ' + _token.access_token;
       this.isConnected = true;
 
       _loginTimeout = setTimeout(reconnect, _config.reloginTimeout, this);

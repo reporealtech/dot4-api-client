@@ -15,7 +15,7 @@ const config = {
   , password: process.env.DOT4_PASSWORD
   , tenant: process.env.DOT4_TENANT
   , baseUrl: process.env.DOT4_BASE_URL
-  , reloginTimeout: process.env.DOT4_RELOGIN_TIMEOUT || 1000 * 60 * 60 * 1 // 1h
+  , reloginTimeout: process.env.DOT4_RELOGIN_TIMEOUT || 1000 * 60 * 55 // 55min
   , saKpiRepository: {
 	  url: process.env.sakpirepositoryurl
 	  , apiKey: process.env.sakpirepositoryapiKey

@@ -219,7 +219,7 @@ class IncidentManagementApi extends ConfigurationManagementApi {
         `${this.name}.addPrivateTicketComment(${ticketId}, ${comment}) ...`,
       );
 
-      const createdComment = this.addTicketComment(
+      const createdComment =await this.addTicketComment(
         ticketId,
         comment,
         'private',
@@ -237,7 +237,7 @@ class IncidentManagementApi extends ConfigurationManagementApi {
     try {
       debug(`${this.name}.addPublicTicketComment(${ticketId}, ${comment}) ...`);
 
-      const createdComment = this.addTicketComment(ticketId, comment, 'public');
+      const createdComment =await this.addTicketComment(ticketId, comment, 'public');
 
       return createdComment;
     } catch (error) {
@@ -249,39 +249,39 @@ class IncidentManagementApi extends ConfigurationManagementApi {
 
   async addPublicPortalTicketComment(ticketId, comment) {
     try {
-      debug(`${this.name}.addPublicTicketComment(${ticketId}, ${comment}) ...`);
+      debug(`${this.name}.addPublicPortalTicketComment(${ticketId}, ${comment}) ...`);
 
-      const createdComment = this.addTicketComment(ticketId, comment, 'portal');
+      const createdComment =await this.addTicketComment(ticketId, comment, 'portal');
 
       return createdComment;
     } catch (error) {
       throw error;
     } finally {
-      debug(`${this.name}.addPublicTicketComment("${ticketId}")`);
+      debug(`${this.name}.addPublicPortalTicketComment("${ticketId}")`);
     }
   }
 
   async addTicketComment(ticketId, comment, commentType) {
     try {
       debug(
-        `${this.name}.addPublicTicketComment(${ticketId}, "${commentType}", "${commentType}") ...`,
+        `${this.name}.addTicketComment(${ticketId}, "${commentType}", "${commentType}") ...`,
       );
 
       if (!_.isInteger(ticketId)) {
         throw new Error(
-          `${this.name}.addPublicTicketComment("${ticketId}"): Incident id is missing.`,
+          `${this.name}.addTicketComment("${ticketId}"): Incident id is missing.`,
         );
       }
 
       if (!_.isString(comment)) {
         throw new Error(
-          `${this.name}.addPublicTicketComment("${comment}"): comment is not a string.`,
+          `${this.name}.addTicketComment("${comment}"): comment is not a string.`,
         );
       }
 
       if (!_.includes(COMMENT_TYPES, commentType)) {
         throw new Error(
-          `${this.name}.addPublicTicketComment("${comment}"): commentType is not valid. Valid Values are ${COMMENT_TYPES}`,
+          `${this.name}.addTicketComment("${comment}"): commentType is not valid. Valid Values are ${COMMENT_TYPES}`,
         );
       }
 
@@ -309,7 +309,7 @@ class IncidentManagementApi extends ConfigurationManagementApi {
     } catch (error) {
       throw error;
     } finally {
-      debug(`${this.name}.addPublicTicketComment(...)`);
+      debug(`${this.name}.addTicketComment(...)`);
     }
   }
 }
