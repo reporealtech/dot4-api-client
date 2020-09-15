@@ -130,18 +130,21 @@ class IncidentManagementApi extends ConfigurationManagementApi {
     try {
       debug(`${this.name}.createIncident(...) ...`);
 
-      const ciTypeIdIncident = await this.getCiTypeId(
-        SYSTEM_INTERNALS.ciTypeId.standardStoerung,
-      );
-
       const newIncident = _.clone(incident);
       _.set(
         newIncident,
         '$type',
         'Common.DomainModels.ServiceOperation.Ticket, Realtech.Esm.Common.DomainModels',
       );
-      _.set(newIncident, 'ciTypeId', ciTypeIdIncident);
+	  
+	  if(!_.get(newIncident, 'ciTypeId')){
+		const ciTypeIdIncident = await this.getCiTypeId(
+			SYSTEM_INTERNALS.ciTypeId.standardStoerung,
+		);
 
+		_.set(newIncident, 'ciTypeId', ciTypeIdIncident);
+	  }
+	  
       const createdIncident = await this.dot4Client.postRequest(
         '/api/tickets',
         newIncident,
