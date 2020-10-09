@@ -18,6 +18,7 @@ const axios = require('axios'),
   Queue = require('better-queue'),
   querystring = require('querystring'),
   _ = require('lodash'),
+  jwt = require('jsonwebtoken'),
   debug = require('../lib/debug'),
   proxyConf = require('../lib/proxyConf'),
   ServiceManagementApi = require('./service-management'),
@@ -98,21 +99,26 @@ function createDot4Client(config) {
     throw new Error('dot4Client::config is missing');
   }
 
-  if (!config.tenant || !config.tenant.length === 0) {
-    throw new Error('dot4Client::config.tenant is missing');
-  }
+  if (config.token) {
+	  const decoded = jwt.decode(config.token);
+	  config.baseUrl = decoded.dot4api
+  } else {
+	  if (!config.tenant || !config.tenant.length === 0) {
+		throw new Error('dot4Client::config.tenant is missing');
+	  }
 
-  if (!config.user || !config.user.length === 0) {
-    throw new Error('dot4Client::config.user is missing');
-  }
-  if (!config.password || !config.password.length === 0) {
-    throw new Error('dot4Client::config.password is missing');
-  }
+	  if (!config.user || !config.user.length === 0) {
+		throw new Error('dot4Client::config.user is missing');
+	  }
+	  if (!config.password || !config.password.length === 0) {
+		throw new Error('dot4Client::config.password is missing');
+	  }
 
-  if (!config.baseUrl || !config.baseUrl.length === 0) {
-    config.baseUrl = 'https://api.dot4.de';
+	  if (!config.baseUrl || !config.baseUrl.length === 0) {
+		config.baseUrl = 'https://api.dot4.de';
+	  }
   }
-
+  
   if (
     !_.isInteger(config.reloginTimeout) ||
     config.reloginTimeout < 120 * 1000
@@ -131,6 +137,11 @@ function createDot4Client(config) {
   let dot4Client = {
     isConnected: false,
   };
+  
+  if (config.token) {
+	  dot4Client._token={access_token: config.token}
+	  dot4Client.isConnected=true
+  }
 
   dot4Client.getVersion = async function () {
     return await this.getRequest('/api/version');
@@ -143,52 +154,55 @@ function createDot4Client(config) {
     debug(`${MODULE_NAME}.getUserInfo() finished.`);
     return userInfo;
   };
-
+  
   dot4Client.connect = async function () {
-    const loginParams = {
-      grant_type: 'password',
-      username: (_.get(_config, 'module') || 'Dot4') +
-        '\\' +
-        _config.tenant +
-        '\\' +
-        _config.user,
-      password: _config.password,
-    };
+	if(_config.tenant &&_config.user &&_config.password ){
+		  
+		const loginParams = {
+		  grant_type: 'password',
+		  username: (_.get(_config, 'module') || 'Dot4') +
+			'\\' +
+			_config.tenant +
+			'\\' +
+			_config.user,
+		  password: _config.password,
+		};
 
-    try {
-      this._token = await this.postRequest(
-        '/token',
-        querystring.stringify(loginParams),
-      );
+		try {
+		  this._token = await this.postRequest(
+			'/token',
+			querystring.stringify(loginParams),
+		  );
 
-      this.isConnected = true;
+		  this.isConnected = true;
 
-      _loginTimeout = setTimeout(reconnect, _config.reloginTimeout, this);
-    } catch (error) {
-      if (error.response) {
-        throw new Error(
-          `Connect - Status Code: ${_.get(
-            error,
-            'response.status',
-          )} "${JSON.stringify(_.get(error, 'response.data'))}"`,
-        );
-      } else if (error.request) {
-        throw new Error(
-          `Connect - TimeoutStatus Code: ${_.get(
-            error,
-            'response.status',
-          )} "${JSON.stringify(_.get(error, 'response.data'))}"`,
-        );
-      } else {
-        throw new Error(
-          `Connect - Error: "${JSON.stringify(
-            error.message || error.stack || error,
-          )}"`,
-        );
-      }
-    } finally {
-      debug(`createDot4Client() finished`);
-    }
+		  _loginTimeout = setTimeout(reconnect, _config.reloginTimeout, this);
+		} catch (error) {
+		  if (error.response) {
+			throw new Error(
+			  `Connect - Status Code: ${_.get(
+				error,
+				'response.status',
+			  )} "${JSON.stringify(_.get(error, 'response.data'))}"`,
+			);
+		  } else if (error.request) {
+			throw new Error(
+			  `Connect - TimeoutStatus Code: ${_.get(
+				error,
+				'response.status',
+			  )} "${JSON.stringify(_.get(error, 'response.data'))}"`,
+			);
+		  } else {
+			throw new Error(
+			  `Connect - Error: "${JSON.stringify(
+				error.message || error.stack || error,
+			  )}"`,
+			);
+		  }
+		}
+	}
+	debug(`createDot4Client() finished`);
+	return _.get(this,'_token.access_token')
   };
 
   dot4Client.disconnect = function () {
