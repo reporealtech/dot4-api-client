@@ -497,7 +497,13 @@ class ConfigurationManagementApi extends BaseApi {
       url += `$top=${numToLoadPerReq}&$skip=${numToLoadPerReq * skip}`; //TODO: all Attrs needed!
 
       const newP = await this.safeDot4ClientRequest('get', url);
-      cis.push(...newP.items);
+	  
+	  //load all attrs if only one CI. TODO: can be removed when all attrs come with the first request.
+	  if(_.get(newP,'items.length')==1){
+		  cis.push(await this.safeDot4ClientRequest('get', '/api/cis?id='+newP.items[0].id))
+	  } else
+		cis.push(...newP.items);
+	  
       pCount = newP.count;
       debug(
         `loadAllCisForFilter(): must load ${pCount} CIs with serverFilter ${JSON.stringify(
