@@ -49,7 +49,7 @@ The getVersion() method returns the current version of the dot4 api
 
 ```javascript
 const version = dot4Client.getVersion()
-// version => "2019.1.2818.1"
+// version => "2020.6.3830.0"
 ```
 
 ### dot4Client.getUserInfo()
