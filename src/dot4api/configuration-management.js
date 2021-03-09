@@ -346,8 +346,17 @@ class ConfigurationManagementApi extends BaseApi {
       debug(`${this.name}.createCi(...) finished.`);
     }
   }
+  
+  /**
+   * Achtung: stoesst einen asynchronen BackgroundJob an, der nach und nach alle gewuenschten CIs updated
+   */
+  async updateOnlyGivenValuesForCis(updateValues){
+	debug(`updateGivenValuesForCi(ids: ${updateValues.ciIds})`);
 
-  async updateCi(ci) {
+	return await this.dot4Client.putRequest(`api/CIBatchUpdate`, updateValues);
+  }
+
+  async updateCi(ci, removeNotGivenAttrs=true) {
     debug(`${this.name}.updateCi({name: ${ci.name}, id: ${ci.id}) ...`);
 
     if (_.isNil(ci)) {
@@ -358,18 +367,31 @@ class ConfigurationManagementApi extends BaseApi {
     if (_.isNaN(id) || id < 0) {
       throw new Error(`id of ci is not a valid number [${id}]`);
     }
-    const url = `api/cis?id=${id}`;
 
     if (_.isNaN(ci.ciTypeId) || ci.ciTypeId < 0) {
       throw new Error(`ciTypeId of ci is not a valid number [${ci.ciTypeId}]`);
     }
+
+	if(!removeNotGivenAttrs) {
+		const newValues={
+			"ciTypeId":ci.ciTypeId,
+			"ciIds":[id],
+			"values":[], //{"propertyName":"user_HW","value":1383}
+			"count":1
+		}
+		_.forEach(ci, (v,k)=>{
+			newValues.values.push({"propertyName":k,"value":v})
+		})
+
+		return await this.updateOnlyGivenValuesForCis(newValues)
+	}
 
     if (_.isEmpty(ci.name)) {
       throw new Error(`name of ci is not set [${ci.name}]`);
     }
 
     // debug("make putRequest");
-    return await this.dot4Client.putRequest(url, ci);
+    return await this.dot4Client.putRequest(`api/cis?id=${id}`, ci);
   }
 
   async deleteCi(ci) {

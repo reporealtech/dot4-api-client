@@ -42,6 +42,10 @@ class IncidentManagementApi extends ConfigurationManagementApi {
     return SYSTEM_INTERNALS.ciTypeId.standardStoerung;
   }
 
+  getUuidCiTypeServiceRequest() {
+    return SYSTEM_INTERNALS.ciTypeId.standardServiceRequest;
+  }
+
   async getTicketLifecycles() {
     if (!this.ticketLifecycles)
       this.ticketLifecycles = await this.safeDot4ClientRequest(
@@ -155,6 +159,26 @@ class IncidentManagementApi extends ConfigurationManagementApi {
       throw error;
     } finally {
       debug(`${this.name}.createIncident("...")`);
+    }
+  }
+  
+  async createServiceRequest(incident) {
+    try {
+      debug(`${this.name}.createServiceRequest(...) ...`);
+
+	  const newIncident = _.clone(incident);
+	  if(!_.get(newIncident, 'ciTypeId')){
+		  const ciTypeIdServiceRequest = await this.getCiTypeId(
+			SYSTEM_INTERNALS.ciTypeId.standardServiceRequest
+		  );
+
+		 _.set(newIncident, 'ciTypeId', ciTypeIdServiceRequest);
+	  }
+      return await this.createIncident(newIncident)
+    } catch (error) {
+      throw error;
+    } finally {
+	  debug(`${this.name}.createServiceRequest("...")`);
     }
   }
 
