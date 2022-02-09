@@ -20,7 +20,7 @@
   "author": "tobias.ceska@realtech.com",
   "license": "ISC",
   "dependencies": {
-    "axios": "^0.19.2",
+    "axios": "^0.20.0",
     "better-queue": "^3.8.10",
     "bluebird": "^3.5.2",
     "debug": "^4.1.0",
